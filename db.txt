@@ -66,3 +66,6 @@ CREATE TABLE admin (
     username VARCHAR(50) NOT NULL,
     password VARCHAR(255) NOT NULL
 );
+
+
+http://localhost/flb_fantacy/backend/api/login.php
