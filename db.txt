@@ -1,0 +1,68 @@
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    budget_remaining INT DEFAULT 100,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE players (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    team VARCHAR(50),
+    position VARCHAR(20),
+    price INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE coaches (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    team VARCHAR(50),
+    price INT NOT NULL,
+    bonus_points INT DEFAULT 5,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_team (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    player1 INT,
+    player2 INT,
+    player3 INT,
+    player4 INT,
+    player5 INT,
+    coach INT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE weekly_stats (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    player_id INT NOT NULL,
+    week_number INT NOT NULL,
+    points INT DEFAULT 0,
+    rebounds INT DEFAULT 0,
+    assists INT DEFAULT 0,
+    steals INT DEFAULT 0,
+    blocks INT DEFAULT 0,
+    turnovers INT DEFAULT 0,
+    FOREIGN KEY (player_id) REFERENCES players(id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE user_points (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    week_number INT NOT NULL,
+    fantasy_points INT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE admin (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
