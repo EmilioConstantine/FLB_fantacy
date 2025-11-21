@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Save this file as: backend/scr/test-ui.html -->
+  <!-- Save as: backend/scr/test-ui.html -->
   <meta charset="UTF-8" />
   <title>Fantasy Backend – Test UI</title>
   <style>
@@ -113,12 +113,16 @@
 
 <!-- 5. CREATE TEAM -->
 <h2>5. Create Team (team/create_team.php)</h2>
+<p><strong>⚠️ Players must be comma-separated like: <code>1,2,3,4,5</code></strong></p>
+
 <label>User ID</label>
 <input id="t_user_id" type="number" placeholder="1" />
 <label>Week</label>
 <input id="t_week" type="number" placeholder="1" /><br />
+
 <label>Team Name</label>
 <input id="t_team_name" placeholder="My Fantasy Team" /><br />
+
 <label>Player IDs (comma)</label>
 <input id="t_players" placeholder="1,2,3,4,5" />
 <label>Coach ID</label>
@@ -141,15 +145,13 @@
 <pre id="outGetTeam"></pre>
 
 <script>
-  // ---------- CONFIG ----------
+  // ===== CONFIG =====
   const API_BASE = "http://localhost/FLB_FANTACY/backend/api";
 
-  // helper to show JSON
   function showJson(id, data) {
     document.getElementById(id).textContent = JSON.stringify(data, null, 2);
   }
 
-  // generic POST helper
   async function postJson(endpoint, body) {
     try {
       const res = await fetch(API_BASE + "/" + endpoint, {
@@ -168,7 +170,6 @@
     }
   }
 
-  // generic GET helper
   async function getJson(endpoint) {
     try {
       const res = await fetch(API_BASE + "/" + endpoint);
@@ -183,22 +184,18 @@
     }
   }
 
-  // ---------- REGISTER ----------
+  // ===== 0) REGISTER =====
   document.getElementById("btnRegister").addEventListener("click", async () => {
     const username = document.getElementById("r_username").value.trim();
     const email = document.getElementById("r_email").value.trim();
     const password = document.getElementById("r_password").value;
 
-    const res = await postJson("auth/register.php", {
-      username,
-      email,
-      password,
-    });
+    const res = await postJson("auth/register.php", { username, email, password });
     showJson("outRegister", res);
   });
 
-  // ---------- LOGIN / LOGOUT ----------
-  let currentUser = null; // simple client-side store for testing
+  // ===== 0b) LOGIN / LOGOUT =====
+  let currentUser = null;
 
   document.getElementById("btnLogin").addEventListener("click", async () => {
     const email = document.getElementById("l_email").value.trim();
@@ -216,7 +213,7 @@
     showJson("outLogin", { success: true, message: "Logged out", user: null });
   });
 
-  // ---------- ADD PLAYER ----------
+  // ===== 1) ADD PLAYER =====
   document.getElementById("btnAddPlayer").addEventListener("click", async () => {
     const name = document.getElementById("p_name").value.trim();
     const team = document.getElementById("p_team").value.trim();
@@ -233,13 +230,13 @@
     showJson("outAddPlayer", res);
   });
 
-  // ---------- LOAD PLAYERS ----------
+  // ===== 2) LOAD PLAYERS =====
   document.getElementById("btnLoadPlayers").addEventListener("click", async () => {
     const res = await getJson("players/get_all_players.php");
     showJson("outPlayers", res);
   });
 
-  // ---------- ADD WEEKLY STATS ----------
+  // ===== 3) ADD WEEKLY STATS =====
   document.getElementById("btnAddStats").addEventListener("click", async () => {
     const body = {
       week_number: Number(document.getElementById("s_week").value),
@@ -261,15 +258,15 @@
     showJson("outStats", res);
   });
 
-  // ---------- LEADERBOARD ----------
+  // ===== 4) LEADERBOARD =====
   document.getElementById("btnLeaderboard").addEventListener("click", async () => {
     const res = await getJson("leaderboard/get_leaderboard.php");
     showJson("outLeaderboard", res);
   });
 
-  // ---------- CREATE TEAM ----------
+  // ===== 5) CREATE TEAM (matches YOUR create_team.php) =====
   document.getElementById("btnCreateTeam").addEventListener("click", async () => {
-    // Use logged-in user if available, otherwise use manual input for testing
+    // Use logged-in user if available; else manual input
     const manualUserId = Number(document.getElementById("t_user_id").value);
     const user_id = currentUser ? currentUser.id : manualUserId;
 
@@ -285,6 +282,16 @@
     const coach_id = Number(document.getElementById("t_coach_id").value);
     const captain_id = Number(document.getElementById("t_captain_id").value);
 
+    // quick front-end check to avoid "All fields required"
+    if (!user_id || !week_number || !team_name || players.length === 0 || !coach_id || !captain_id) {
+      showJson("outCreateTeam", {
+        success: false,
+        message: "Fill all fields. Remember: players must be like 1,2,3,4,5",
+        debug: { user_id, week_number, team_name, players, coach_id, captain_id }
+      });
+      return;
+    }
+
     const res = await postJson("team/create_team.php", {
       user_id,
       week_number,
@@ -297,15 +304,13 @@
     showJson("outCreateTeam", res);
   });
 
-  // ---------- GET USER TEAM ----------
+  // ===== 6) GET USER TEAM =====
   document.getElementById("btnGetTeam").addEventListener("click", async () => {
     const user_id = Number(document.getElementById("gt_user_id").value);
     const week_number = Number(document.getElementById("gt_week").value);
 
     const res = await getJson(
-      `team/get_team.php?user_id=${encodeURIComponent(user_id)}&week_number=${encodeURIComponent(
-        week_number
-      )}`
+      `team/get_team.php?user_id=${encodeURIComponent(user_id)}&week_number=${encodeURIComponent(week_number)}`
     );
     showJson("outGetTeam", res);
   });
