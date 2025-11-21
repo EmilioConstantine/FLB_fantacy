@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Save as: backend/scr/test-ui.html -->
+  <meta charset="UTF-8" />
+  <title>Fantasy Backend – Test UI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1, h2 { margin-top: 24px; }
+    label { font-weight: bold; margin-right: 4px; }
+    input {
+      margin: 4px;
+      padding: 4px 6px;
+    }
+    button {
+      padding: 5px 10px;
+      margin: 6px 0;
+      cursor: pointer;
+    }
+    pre {
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      padding: 10px;
+      white-space: pre-wrap;
+      margin-top: 8px;
+    }
+    hr { margin: 18px 0; }
+  </style>
+</head>
+<body>
+
+<h1>Fantasy Backend – Test UI</h1>
+
+<!-- 0. REGISTER -->
+<h2>0. Register User (auth/register.php)</h2>
+<label>Username</label>
+<input id="r_username" placeholder="jimmy" />
+<label>Email</label>
+<input id="r_email" placeholder="jimmy@example.com" />
+<label>Password</label>
+<input id="r_password" type="password" placeholder="123456" />
+<button id="btnRegister">Register</button>
+<h3>Register Response</h3>
+<pre id="outRegister"></pre>
+
+<!-- 0b. LOGIN -->
+<h2>0b. Login User (auth/login.php)</h2>
+<label>Email</label>
+<input id="l_email" placeholder="jimmy@example.com" />
+<label>Password</label>
+<input id="l_password" type="password" placeholder="123456" />
+<button id="btnLogin">Login</button>
+<button id="btnLogout">Logout</button>
+<h3>Login Response / Current User</h3>
+<pre id="outLogin"></pre>
+
+<hr />
+
+<!-- 1. ADD PLAYER -->
+<h2>1. Add Player (admin/admin_add_players.php)</h2>
+<label>Name</label>
+<input id="p_name" placeholder="Player Name" />
+<label>Team</label>
+<input id="p_team" placeholder="Team Name" />
+<label>Position</label>
+<input id="p_position" placeholder="PG/SG/SF/PF/C" />
+<label>Price</label>
+<input id="p_price" type="number" placeholder="10" />
+<button id="btnAddPlayer">Add Player</button>
+<h3>Response</h3>
+<pre id="outAddPlayer"></pre>
+
+<!-- 2. LOAD PLAYERS -->
+<h2>2. Get All Players (players/get_all_players.php)</h2>
+<button id="btnLoadPlayers">Load Players</button>
+<h3>Response</h3>
+<pre id="outPlayers"></pre>
+
+<!-- 3. ADD WEEKLY STATS -->
+<h2>3. Add Weekly Stats (admin/admin_add_stats.php)</h2>
+<label>Player ID</label>
+<input id="s_player_id" type="number" placeholder="1" />
+<label>Week</label>
+<input id="s_week" type="number" placeholder="1" /><br />
+<label>Pts</label>
+<input id="s_points" type="number" placeholder="10" />
+<label>Reb</label>
+<input id="s_rebounds" type="number" placeholder="5" />
+<label>Ast</label>
+<input id="s_assists" type="number" placeholder="3" />
+<label>Stl</label>
+<input id="s_steals" type="number" placeholder="2" />
+<label>Blk</label>
+<input id="s_blocks" type="number" placeholder="1" />
+<label>Tov</label>
+<input id="s_turnovers" type="number" placeholder="2" />
+<label>Min</label>
+<input id="s_minutes" type="number" placeholder="30" />
+<br />
+<button id="btnAddStats">Add Stats</button>
+<h3>Response</h3>
+<pre id="outStats"></pre>
+
+<!-- 4. LEADERBOARD -->
+<h2>4. Leaderboard (leaderboard/get_leaderboard.php)</h2>
+<button id="btnLeaderboard">Get Leaderboard</button>
+<h3>Response</h3>
+<pre id="outLeaderboard"></pre>
+
+<!-- 5. CREATE TEAM -->
+<h2>5. Create Team (team/create_team.php)</h2>
+<p><strong>⚠️ Players must be comma-separated like: <code>1,2,3,4,5</code></strong></p>
+
+<label>User ID</label>
+<input id="t_user_id" type="number" placeholder="1" />
+<label>Week</label>
+<input id="t_week" type="number" placeholder="1" /><br />
+
+<label>Team Name</label>
+<input id="t_team_name" placeholder="My Fantasy Team" /><br />
+
+<label>Player IDs (comma)</label>
+<input id="t_players" placeholder="1,2,3,4,5" />
+<label>Coach ID</label>
+<input id="t_coach_id" type="number" placeholder="1" />
+<label>Captain Player ID</label>
+<input id="t_captain_id" type="number" placeholder="1" />
+<br />
+<button id="btnCreateTeam">Create Team</button>
+<h3>Response</h3>
+<pre id="outCreateTeam"></pre>
+
+<!-- 6. GET USER TEAM -->
+<h2>6. Get User Team (team/get_team.php)</h2>
+<label>User ID</label>
+<input id="gt_user_id" type="number" placeholder="1" />
+<label>Week</label>
+<input id="gt_week" type="number" placeholder="1" />
+<button id="btnGetTeam">Get Team</button>
+<h3>Response</h3>
+<pre id="outGetTeam"></pre>
+
+<script>
+  // ===== CONFIG =====
+  const API_BASE = "http://localhost/FLB_FANTACY/backend/api";
+
+  function showJson(id, data) {
+    document.getElementById(id).textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function postJson(endpoint, body) {
+    try {
+      const res = await fetch(API_BASE + "/" + endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        return { success: false, error: "Invalid JSON", raw: text };
+      }
+    } catch (err) {
+      return { success: false, error: "Fetch error: " + err.message };
+    }
+  }
+
+  async function getJson(endpoint) {
+    try {
+      const res = await fetch(API_BASE + "/" + endpoint);
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        return { success: false, error: "Invalid JSON", raw: text };
+      }
+    } catch (err) {
+      return { success: false, error: "Fetch error: " + err.message };
+    }
+  }
+
+  // ===== 0) REGISTER =====
+  document.getElementById("btnRegister").addEventListener("click", async () => {
+    const username = document.getElementById("r_username").value.trim();
+    const email = document.getElementById("r_email").value.trim();
+    const password = document.getElementById("r_password").value;
+
+    const res = await postJson("auth/register.php", { username, email, password });
+    showJson("outRegister", res);
+  });
+
+  // ===== 0b) LOGIN / LOGOUT =====
+  let currentUser = null;
+
+  document.getElementById("btnLogin").addEventListener("click", async () => {
+    const email = document.getElementById("l_email").value.trim();
+    const password = document.getElementById("l_password").value;
+
+    const res = await postJson("auth/login.php", { email, password });
+    if (res.success && res.user) {
+      currentUser = res.user; // expects { id, username, email, ... }
+    }
+    showJson("outLogin", res);
+  });
+
+  document.getElementById("btnLogout").addEventListener("click", () => {
+    currentUser = null;
+    showJson("outLogin", { success: true, message: "Logged out", user: null });
+  });
+
+  // ===== 1) ADD PLAYER =====
+  document.getElementById("btnAddPlayer").addEventListener("click", async () => {
+    const name = document.getElementById("p_name").value.trim();
+    const team = document.getElementById("p_team").value.trim();
+    const position = document.getElementById("p_position").value.trim().toUpperCase();
+    const price = Number(document.getElementById("p_price").value);
+
+    const res = await postJson("admin/admin_add_players.php", {
+      type: "player",
+      name,
+      team,
+      position,
+      price,
+    });
+    showJson("outAddPlayer", res);
+  });
+
+  // ===== 2) LOAD PLAYERS =====
+  document.getElementById("btnLoadPlayers").addEventListener("click", async () => {
+    const res = await getJson("players/get_all_players.php");
+    showJson("outPlayers", res);
+  });
+
+  // ===== 3) ADD WEEKLY STATS =====
+  document.getElementById("btnAddStats").addEventListener("click", async () => {
+    const body = {
+      week_number: Number(document.getElementById("s_week").value),
+      stats: [
+        {
+          player_id: Number(document.getElementById("s_player_id").value),
+          points: Number(document.getElementById("s_points").value || 0),
+          rebounds: Number(document.getElementById("s_rebounds").value || 0),
+          assists: Number(document.getElementById("s_assists").value || 0),
+          steals: Number(document.getElementById("s_steals").value || 0),
+          blocks: Number(document.getElementById("s_blocks").value || 0),
+          turnovers: Number(document.getElementById("s_turnovers").value || 0),
+          minutes: Number(document.getElementById("s_minutes").value || 0),
+        },
+      ],
+    };
+
+    const res = await postJson("admin/admin_add_stats.php", body);
+    showJson("outStats", res);
+  });
+
+  // ===== 4) LEADERBOARD =====
+  document.getElementById("btnLeaderboard").addEventListener("click", async () => {
+    const res = await getJson("leaderboard/get_leaderboard.php");
+    showJson("outLeaderboard", res);
+  });
+
+  // ===== 5) CREATE TEAM (matches YOUR create_team.php) =====
+  document.getElementById("btnCreateTeam").addEventListener("click", async () => {
+    // Use logged-in user if available; else manual input
+    const manualUserId = Number(document.getElementById("t_user_id").value);
+    const user_id = currentUser ? currentUser.id : manualUserId;
+
+    const week_number = Number(document.getElementById("t_week").value);
+    const team_name = document.getElementById("t_team_name").value.trim();
+
+    const players = document
+      .getElementById("t_players")
+      .value.split(",")
+      .map((x) => Number(x.trim()))
+      .filter((x) => !Number.isNaN(x) && x > 0);
+
+    const coach_id = Number(document.getElementById("t_coach_id").value);
+    const captain_id = Number(document.getElementById("t_captain_id").value);
+
+    // quick front-end check to avoid "All fields required"
+    if (!user_id || !week_number || !team_name || players.length === 0 || !coach_id || !captain_id) {
+      showJson("outCreateTeam", {
+        success: false,
+        message: "Fill all fields. Remember: players must be like 1,2,3,4,5",
+        debug: { user_id, week_number, team_name, players, coach_id, captain_id }
+      });
+      return;
+    }
+
+    const res = await postJson("team/create_team.php", {
+      user_id,
+      week_number,
+      team_name,
+      players,
+      coach_id,
+      captain_id,
+    });
+
+    showJson("outCreateTeam", res);
+  });
+
+  // ===== 6) GET USER TEAM =====
+  document.getElementById("btnGetTeam").addEventListener("click", async () => {
+    const user_id = Number(document.getElementById("gt_user_id").value);
+    const week_number = Number(document.getElementById("gt_week").value);
+
+    const res = await getJson(
+      `team/get_team.php?user_id=${encodeURIComponent(user_id)}&week_number=${encodeURIComponent(week_number)}`
+    );
+    showJson("outGetTeam", res);
+  });
+</script>
+</body>
+</html>

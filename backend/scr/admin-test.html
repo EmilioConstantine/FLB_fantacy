@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Test Add Player / Coach API</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, select {
+      display: block;
+      margin: 5px 0;
+      padding: 6px;
+      width: 260px;
+    }
+    button {
+      margin-top: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+    pre {
+      background:#f3f3f3;
+      padding:10px;
+      border-radius:6px;
+      max-height:260px;
+      overflow:auto;
+      font-size: 12px;
+    }
+    label { font-weight:bold; }
+    section {
+      border:1px solid #ccc;
+      padding:15px;
+      margin-bottom:20px;
+      border-radius:8px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Test Add Player / Coach API</h1>
+
+<label>API base URL (no trailing /):</label>
+<!-- This matches your XAMPP path: http://localhost/FLB_FANTACY/backend is root -->
+<input id="backend" value="http://localhost/FLB_FANTACY/backend/api" style="width:380px" />
+
+<hr>
+
+<!-- ========= ADD PLAYER ========= -->
+<section>
+  <h2>Add Player (type = "player")</h2>
+  <input id="player_name"     placeholder="Player Name (name)" />
+  <input id="player_team"     placeholder="Team (team)" />
+  <input id="player_position" placeholder="Position (position: PG/SG/SF/PF/C)" />
+  <input id="player_price"    placeholder="Price (price, number)" />
+
+  <button onclick="addPlayer()">Add Player</button>
+
+  <h3>Result</h3>
+  <pre id="player_result"></pre>
+</section>
+
+<!-- ========= ADD COACH ========= -->
+<section>
+  <h2>Add Coach (type = "coach")</h2>
+  <input id="coach_name"   placeholder="Coach Name (name)" />
+  <input id="coach_team"   placeholder="Team (team)" />
+  <input id="coach_price"  placeholder="Price (price, number)" />
+  <input id="coach_bonus"  placeholder="Bonus Points (bonus_points, default 5)" />
+
+  <button onclick="addCoach()">Add Coach</button>
+
+  <h3>Result</h3>
+  <pre id="coach_result"></pre>
+</section>
+
+<script>
+function api(path) {
+  const base = document.getElementById('backend').value.replace(/\/$/, '');
+  if (!path.startsWith('/')) path = '/' + path;
+  return base + path;
+}
+
+/* ------------------ ADD PLAYER ------------------ */
+async function addPlayer() {
+  const body = {
+    type: "player", // IMPORTANT for your PHP
+    name: document.getElementById('player_name').value.trim(),
+    team: document.getElementById('player_team').value.trim(),
+    position: document.getElementById('player_position').value.trim(),
+    // remove spaces and convert to int to avoid "Missing fields" on PHP side
+    price: parseInt(document.getElementById('player_price').value.replace(/\s+/g, ''), 10)
+  };
+
+  await callApi('/admin/admin_add_players.php', body, 'player_result');
+}
+
+/* ------------------ ADD COACH ------------------ */
+async function addCoach() {
+  const body = {
+    type: "coach", // IMPORTANT for your PHP
+    name: document.getElementById('coach_name').value.trim(),
+    team: document.getElementById('coach_team').value.trim(),
+    price: parseInt(document.getElementById('coach_price').value.replace(/\s+/g, ''), 10),
+    bonus_points: document.getElementById('coach_bonus').value
+      ? parseInt(document.getElementById('coach_bonus').value, 10)
+      : undefined
+  };
+
+  await callApi('/admin/admin_add_players.php', body, 'coach_result');
+}
+
+/* ------------------ HELPER: CALL API & SHOW DEBUG ------------------ */
+async function callApi(path, body, outputElementId) {
+  const el = document.getElementById(outputElementId);
+  let debug = '';
+
+  try {
+    const res = await fetch(api(path), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    debug += `HTTP ${res.status}\n`;
+    const text = await res.text();
+    debug += `Raw response:\n${text}\n`;
+
+    try {
+      const json = JSON.parse(text);
+      debug += `\nParsed as JSON:\n` + JSON.stringify(json, null, 2);
+    } catch (e) {
+      debug += `\n(Note: response is not valid JSON)`;
+    }
+
+    el.textContent = debug;
+  } catch (err) {
+    el.textContent = 'Fetch error: ' + err.message;
+  }
+}
+</script>
+
+</body>
+</html>
