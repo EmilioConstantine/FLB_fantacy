@@ -68,5 +68,46 @@ CREATE TABLE admin (
 );
 
 
-http://localhost/flb_fantacy/backend/api/login.php
-Fatal error: Uncaught mysqli_sql_exception: Unknown database 'flb_fantacy' in C:\xampp\htdocs\FLB_fantacy\backend\config\db.php:8 Stack trace: #0 C:\xampp\htdocs\FLB_fantacy\backend\config\db.php(8): mysqli_connect('localhost', 'root', Object(SensitiveParameterValue), 'flb_fantacy') #1 C:\xampp\htdocs\FLB_fantacy\backend\api\register.php(2): require_once('C:\\xampp\\htdocs...') #2 {main} thrown in C:\xampp\htdocs\FLB_fantacy\backend\config\db.php on line 8
+CREATE TABLE matches (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    week_number INT NOT NULL,
+    home_team VARCHAR(50),
+    away_team VARCHAR(50),
+    match_date DATE,
+    status ENUM('SCHEDULED', 'FINISHED') DEFAULT 'SCHEDULED'
+);
+
+
+
+
+ALTER TABLE user_team
+ADD COLUMN week_number INT NOT NULL DEFAULT 1 AFTER user_id,
+ADD COLUMN team_name VARCHAR(100) NULL AFTER week_number;
+
+
+CREATE TABLE user_team_members (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_team_id INT NOT NULL,
+    player_id INT NULL,
+    coach_id INT NULL,
+    role ENUM('PLAYER', 'COACH') NOT NULL,
+    is_captain TINYINT(1) DEFAULT 0,
+    FOREIGN KEY (user_team_id) REFERENCES user_team(id) ON DELETE CASCADE,
+    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE
+);
+
+
+ALTER TABLE user_team
+DROP COLUMN player1,
+DROP COLUMN player2,
+DROP COLUMN player3,
+DROP COLUMN player4,
+DROP COLUMN player5,
+DROP COLUMN coach;
+
+ALTER TABLE weekly_stats
+ADD COLUMN match_id INT NULL AFTER week_number,
+ADD COLUMN minutes INT DEFAULT 0 AFTER turnovers,
+ADD COLUMN fantasy_points INT DEFAULT 0 AFTER minutes,
+ADD FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE SET NULL;
