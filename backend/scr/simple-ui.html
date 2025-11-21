@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Fantasy Admin Test UI</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+    }
+    h1, h2 {
+        margin-top: 30px;
+    }
+    input {
+        margin: 5px;
+        padding: 5px;
+    }
+    button {
+        padding: 6px 12px;
+        margin-left: 8px;
+    }
+    pre {
+        background: #f4f4f4;
+        border: 1px solid #ddd;
+        padding: 10px;
+        white-space: pre-wrap;
+        margin-top: 10px;
+    }
+    label {
+        font-weight: bold;
+        margin-left: 5px;
+    }
+</style>
+</head>
+<body>
+
+<h1>Fantasy Admin API Test Panel</h1>
+
+<!-- --------------------------------------------------------------------- -->
+<!-- 1. ADD PLAYER API TEST -->
+<!-- --------------------------------------------------------------------- -->
+<h2>1. Add Player (admin_add_players.php)</h2>
+
+<label>Player name</label>
+<input id="p_name" placeholder="Jimmy">
+
+<label>Team</label>
+<input id="p_team" placeholder="Sagesse">
+
+<label>Position (PG / SG / SF / PF / C)</label>
+<input id="p_position" placeholder="PG">
+
+<label>Price</label>
+<input id="p_price" type="number" placeholder="10">
+
+<button id="btnAddPlayer">Add Player</button>
+
+<h3>Response</h3>
+<pre id="outAddPlayer"></pre>
+
+
+
+
+<!-- --------------------------------------------------------------------- -->
+<!-- 2. LOAD ALL PLAYERS -->
+<!-- --------------------------------------------------------------------- -->
+<h2>2. Get All Players (get_all_players.php)</h2>
+
+<button id="btnLoadPlayers">Load Players</button>
+
+<h3>Response</h3>
+<pre id="outPlayers"></pre>
+
+
+
+
+<!-- --------------------------------------------------------------------- -->
+<!-- 3. ADD WEEKLY STATS -->
+<!-- --------------------------------------------------------------------- -->
+<h2>3. Add Weekly Stats (admin_add_stats.php)</h2>
+
+<label>Player ID</label>
+<input id="s_player_id" type="number" placeholder="1">
+
+<label>Week Number</label>
+<input id="s_week" type="number" placeholder="1">
+
+<label>Points</label>
+<input id="s_points" type="number" placeholder="10">
+
+<label>Rebounds</label>
+<input id="s_rebounds" type="number" placeholder="5">
+
+<label>Assists</label>
+<input id="s_assists" type="number" placeholder="3">
+
+<label>Steals</label>
+<input id="s_steals" type="number" placeholder="2">
+
+<label>Blocks</label>
+<input id="s_blocks" type="number" placeholder="1">
+
+<label>Turnovers</label>
+<input id="s_turnovers" type="number" placeholder="2">
+
+<label>Minutes</label>
+<input id="s_minutes" type="number" placeholder="28">
+
+<button id="btnAddStats">Add Stats</button>
+
+<h3>Response</h3>
+<pre id="outStats"></pre>
+
+
+
+
+<!-- --------------------------------------------------------------------- -->
+<!-- 4. LEADERBOARD -->
+<!-- --------------------------------------------------------------------- -->
+<h2>4. Leaderboard (get_leaderboard.php)</h2>
+
+<button id="btnLeaderboard">Get Leaderboard</button>
+
+<h3>Response</h3>
+<pre id="outLeaderboard"></pre>
+
+
+
+<!-- --------------------------------------------------------------------- -->
+<!-- JS MODULES -->
+<!-- --------------------------------------------------------------------- -->
+<script type="module">
+
+import { AdminService } from "./api/adminService.js";
+import { PlayerService } from "./api/playerService.js";
+import { LeaderboardAPI } from "./api/leaderboardService.js";
+
+function showJson(id, data) {
+    document.getElementById(id).textContent = JSON.stringify(data, null, 2);
+}
+
+/* =======================  ADD PLAYER  ======================= */
+document.getElementById("btnAddPlayer").addEventListener("click", async () => {
+    const name = document.getElementById("p_name").value.trim();
+    const team = document.getElementById("p_team").value.trim();
+    const position = document.getElementById("p_position").value.trim().toUpperCase();
+    const price = Number(document.getElementById("p_price").value);
+
+    const res = await AdminService.addPlayer({ name, team, position, price });
+    showJson("outAddPlayer", res);
+});
+
+/* =======================  LOAD PLAYERS  ======================= */
+document.getElementById("btnLoadPlayers").addEventListener("click", async () => {
+    const res = await PlayerService.getAll();
+    showJson("outPlayers", res);
+});
+
+/* =======================  ADD WEEKLY STATS  ======================= */
+document.getElementById("btnAddStats").addEventListener("click", async () => {
+    const statRecord = {
+        player_id: Number(document.getElementById("s_player_id").value),
+        points: Number(document.getElementById("s_points").value || 0),
+        rebounds: Number(document.getElementById("s_rebounds").value || 0),
+        assists: Number(document.getElementById("s_assists").value || 0),
+        steals: Number(document.getElementById("s_steals").value || 0),
+        blocks: Number(document.getElementById("s_blocks").value || 0),
+        turnovers: Number(document.getElementById("s_turnovers").value || 0),
+        minutes: Number(document.getElementById("s_minutes").value || 0)
+    };
+
+    const body = {
+        week_number: Number(document.getElementById("s_week").value),
+        stats: [statRecord]
+    };
+
+    const res = await AdminService.addStats(body);
+    showJson("outStats", res);
+});
+
+/* =======================  LEADERBOARD  ======================= */
+document.getElementById("btnLeaderboard").addEventListener("click", async () => {
+    const res = await LeaderboardAPI.getLeaderboard();
+    showJson("outLeaderboard", res);
+});
+
+</script>
+
+</body>
+</html>
