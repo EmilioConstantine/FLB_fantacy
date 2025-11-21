@@ -1,35 +1,39 @@
 <?php
-require_once "../config/db.php";
+require_once "../../config/db.php";
 
-// Check if POST data is sent
-if (!isset($_POST['username']) || !isset($_POST['email']) || !isset($_POST['password'])) {
+// Read JSON body
+$data = json_decode(file_get_contents("php://input"), true);
+
+$username = $data["username"] ?? "";
+$email    = $data["email"] ?? "";
+$password = $data["password"] ?? "";
+
+// Validate fields
+if (!$username || !$email || !$password) {
     echo json_encode([
-        "status" => "error",
+        "success" => false,
         "message" => "username, email and password are required"
     ]);
     exit;
 }
 
-$username = $_POST['username'];
-$email = $_POST['email'];
-$password = $_POST['password'];
-
 // Hash password
 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-// Insert into database
-$sql = "INSERT INTO users (username, email, password)
-        VALUES ('$username', '$email', '$hashedPassword')";
+// Prepare and execute INSERT query
+$sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("sss", $username, $email, $hashedPassword);
 
-if (mysqli_query($conn, $sql)) {
+if ($stmt->execute()) {
     echo json_encode([
-        "status" => "success",
-        "message" => "User registered"
+        "success" => true,
+        "message" => "User registered successfully."
     ]);
 } else {
     echo json_encode([
-        "status" => "error",
-        "message" => "Email already exists or query error"
+        "success" => false,
+        "message" => "Email already exists or database error."
     ]);
 }
 ?>

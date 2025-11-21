@@ -1,41 +1,55 @@
 <?php
-require_once "../config/db.php";
+require_once "../../config/db.php";
 
-// Check if data was sent
-if (!isset($_POST['email']) || !isset($_POST['password'])) {
+$data = json_decode(file_get_contents("php://input"), true);
+
+$email    = $data["email"] ?? "";
+$password = $data["password"] ?? "";
+
+// Validate fields
+if (!$email || !$password) {
     echo json_encode([
-        "status" => "error",
-        "message" => "Email and password required"
+        "success" => false,
+        "message" => "Email and password are required."
     ]);
     exit;
 }
 
-$email = $_POST['email'];
-$password = $_POST['password'];
+// Get user by email
+$sql = "SELECT * FROM users WHERE email = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
 
-// Query user
-$sql = "SELECT * FROM users WHERE email = '$email'";
-$result = mysqli_query($conn, $sql);
-
-if (mysqli_num_rows($result) == 1) {
-
-    $user = mysqli_fetch_assoc($result);
-
-    if (password_verify($password, $user['password'])) {
-
-        session_start();
-        $_SESSION['user_id'] = $user['id'];
-
-        echo json_encode([
-            "status" => "success",
-            "message" => "Login successful"
-        ]);
-
-    } else {
-        echo json_encode(["status" => "error", "message" => "Invalid password"]);
-    }
-
-} else {
-    echo json_encode(["status" => "error", "message" => "User not found"]);
+if ($result->num_rows === 0) {
+    echo json_encode([
+        "success" => false,
+        "message" => "User not found."
+    ]);
+    exit;
 }
+
+$user = $result->fetch_assoc();
+
+// Verify password
+if (!password_verify($password, $user["password"])) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Incorrect password."
+    ]);
+    exit;
+}
+
+// Success
+echo json_encode([
+    "success" => true,
+    "message" => "Login successful.",
+    "user" => [
+        "id"               => $user["id"],
+        "username"         => $user["username"],
+        "email"            => $user["email"],
+        "budget_remaining" => $user["budget_remaining"]
+    ]
+]);
 ?>

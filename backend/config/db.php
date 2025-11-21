@@ -1,29 +1,20 @@
 <?php
-// backend/config/db.php
-$host = 'localhost';
-$db   = 'flb_fantacy';
-$user = 'root'; // Default XAMPP user
-$pass = '';     // Default XAMPP password
-$charset = 'utf8mb4';
+header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
+$host = "localhost";
+$user = "root";
+$pass = ""; // XAMPP default
+$dbname = "flb_fantacy"; // make sure this EXACT name exists in phpMyAdmin
 
-try {
-     $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (\PDOException $e) {
-     throw new \PDOException($e->getMessage(), (int)$e->getCode());
-}
+$conn = mysqli_connect($host, $user, $pass, $dbname);
 
-// Function to return JSON response
-function sendJsonResponse($data, $statusCode = 200) {
-    http_response_code($statusCode);
-    header('Content-Type: application/json');
-    echo json_encode($data);
-    exit;
+if (!$conn) {
+    die(json_encode([
+        "success" => false,
+        "message" => "Database connection failed: " . mysqli_connect_error()
+    ]));
 }
 ?>
