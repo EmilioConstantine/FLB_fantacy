@@ -110,6 +110,42 @@
 
 <h3>Response</h3>
 <pre id="outStats"></pre>
+<h1>Fantasy Admin Test Panel</h1>
+
+<!-- ================= AUTH: REGISTER ================= -->
+<h2>0. Register User (auth/register.php)</h2>
+
+<label>Username</label>
+<input id="r_username" placeholder="jimmy">
+
+<label>Email</label>
+<input id="r_email" placeholder="jimmy@example.com">
+
+<label>Password</label>
+<input id="r_password" type="password" placeholder="123456">
+
+<button id="btnRegister">Register</button>
+
+<h3>Register Response</h3>
+<pre id="outRegister"></pre>
+
+<!-- ================= AUTH: LOGIN ================= -->
+<h2>0. Login User (auth/login.php)</h2>
+
+<label>Email</label>
+<input id="l_email" placeholder="jimmy@example.com">
+
+<label>Password</label>
+<input id="l_password" type="password" placeholder="123456">
+
+<button id="btnLogin">Login</button>
+<button id="btnLogout">Logout</button>
+
+<h3>Login Response / Current User</h3>
+<pre id="outLogin"></pre>
+
+<hr>
+
 
 
 
@@ -130,61 +166,85 @@
 <!-- JS MODULES -->
 <!-- --------------------------------------------------------------------- -->
 <script type="module">
-
-import { AdminService } from "./api/adminService.js";
-import { PlayerService } from "./api/playerService.js";
+import { AdminService }   from "./api/adminService.js";
+import { PlayerService }  from "./api/playerService.js";
 import { LeaderboardAPI } from "./api/leaderboardService.js";
+import { AuthService }    from "./api/authService.js";
 
 function showJson(id, data) {
-    document.getElementById(id).textContent = JSON.stringify(data, null, 2);
+  document.getElementById(id).textContent = JSON.stringify(data, null, 2);
 }
 
-/* =======================  ADD PLAYER  ======================= */
+/* ========= AUTH: REGISTER ========= */
+document.getElementById("btnRegister").addEventListener("click", async () => {
+  const username = document.getElementById("r_username").value.trim();
+  const email    = document.getElementById("r_email").value.trim();
+  const password = document.getElementById("r_password").value;
+
+  const res = await AuthService.register({ username, email, password });
+  showJson("outRegister", res);
+});
+
+/* ========= AUTH: LOGIN / LOGOUT ========= */
+document.getElementById("btnLogin").addEventListener("click", async () => {
+  const email    = document.getElementById("l_email").value.trim();
+  const password = document.getElementById("l_password").value;
+
+  const res = await AuthService.login({ email, password });
+  showJson("outLogin", res);
+});
+
+document.getElementById("btnLogout").addEventListener("click", () => {
+  AuthService.logout();
+  showJson("outLogin", { success: true, message: "Logged out", user: null });
+});
+
+/* ========= 1) ADD PLAYER ========= */
 document.getElementById("btnAddPlayer").addEventListener("click", async () => {
-    const name = document.getElementById("p_name").value.trim();
-    const team = document.getElementById("p_team").value.trim();
-    const position = document.getElementById("p_position").value.trim().toUpperCase();
-    const price = Number(document.getElementById("p_price").value);
+  const name     = document.getElementById("p_name").value.trim();
+  const team     = document.getElementById("p_team").value.trim();
+  const position = document.getElementById("p_position").value.trim().toUpperCase();
+  const price    = Number(document.getElementById("p_price").value);
 
-    const res = await AdminService.addPlayer({ name, team, position, price });
-    showJson("outAddPlayer", res);
+  const res = await AdminService.addPlayer({ name, team, position, price });
+  showJson("outAddPlayer", res);
 });
 
-/* =======================  LOAD PLAYERS  ======================= */
+/* ========= 2) LOAD PLAYERS ========= */
 document.getElementById("btnLoadPlayers").addEventListener("click", async () => {
-    const res = await PlayerService.getAll();
-    showJson("outPlayers", res);
+  const res = await PlayerService.getAll();
+  showJson("outPlayers", res);
 });
 
-/* =======================  ADD WEEKLY STATS  ======================= */
+/* ========= 3) ADD WEEKLY STATS ========= */
 document.getElementById("btnAddStats").addEventListener("click", async () => {
-    const statRecord = {
-        player_id: Number(document.getElementById("s_player_id").value),
-        points: Number(document.getElementById("s_points").value || 0),
-        rebounds: Number(document.getElementById("s_rebounds").value || 0),
-        assists: Number(document.getElementById("s_assists").value || 0),
-        steals: Number(document.getElementById("s_steals").value || 0),
-        blocks: Number(document.getElementById("s_blocks").value || 0),
-        turnovers: Number(document.getElementById("s_turnovers").value || 0),
-        minutes: Number(document.getElementById("s_minutes").value || 0)
-    };
+  const statRecord = {
+    player_id: Number(document.getElementById("s_player_id").value),
+    points:    Number(document.getElementById("s_points").value    || 0),
+    rebounds:  Number(document.getElementById("s_rebounds").value  || 0),
+    assists:   Number(document.getElementById("s_assists").value   || 0),
+    steals:    Number(document.getElementById("s_steals").value    || 0),
+    blocks:    Number(document.getElementById("s_blocks").value    || 0),
+    turnovers: Number(document.getElementById("s_turnovers").value || 0),
+    minutes:   Number(document.getElementById("s_minutes").value   || 0)
+  };
 
-    const body = {
-        week_number: Number(document.getElementById("s_week").value),
-        stats: [statRecord]
-    };
+  const body = {
+    week_number: Number(document.getElementById("s_week").value),
+    stats: [statRecord]
+  };
 
-    const res = await AdminService.addStats(body);
-    showJson("outStats", res);
+  const res = await AdminService.addStats(body);
+  showJson("outStats", res);
 });
 
-/* =======================  LEADERBOARD  ======================= */
+/* ========= 4) LEADERBOARD ========= */
 document.getElementById("btnLeaderboard").addEventListener("click", async () => {
-    const res = await LeaderboardAPI.getLeaderboard();
-    showJson("outLeaderboard", res);
+  const res = await LeaderboardAPI.getLeaderboard();
+  showJson("outLeaderboard", res);
 });
-
 </script>
+
 
 </body>
 </html>

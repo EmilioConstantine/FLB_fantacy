@@ -1,29 +1,30 @@
-// scr/api/teamService.js
-
 import api from "./apiClient.js";
 
 export const TeamService = {
+  createTeam({ user_id, week_number, team_name, players, coach_id, captain_id }) {
+    return api.post("team/create_team.php", {
+      user_id,
+      week_number,
+      team_name,
+      players,
+      coach_id,
+      captain_id
+    });
+  },
 
-    create: (userId, players, coach) =>
-        api.post("team/create_team.php", {
-            user_id: userId,
-            players,
-            coach
-        }),
+  getTeam({ user_id, week_number }) {
+    return api.get(
+      `team/get_team.php?user_id=${encodeURIComponent(user_id)}&week_number=${encodeURIComponent(week_number)}`
+    );
+  },
 
-    update: (userId, players, coach) =>
-        api.post("team/update_team.php", {
-            user_id: userId,
-            players,
-            coach
-        }),
+  deleteTeam({ user_team_id }) {
+    return api.post("team/delete_team.php", { user_team_id });
+  },
 
-    delete: (userId) =>
-        api.post("team/delete_team.php", { user_id: userId }),
-
-    get: (userId) =>
-        api.get(`team/get_team.php?user_id=${userId}`),
-
-    exists: (userId) =>
-        api.get(`team/check_team_exits.php?user_id=${userId}`)
+  checkTeamExists({ user_id, week_number }) {
+    return api.get(
+      `team/check_team_exits.php?user_id=${encodeURIComponent(user_id)}&week_number=${encodeURIComponent(week_number)}`
+    );
+  }
 };
