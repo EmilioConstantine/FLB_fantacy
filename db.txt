@@ -111,3 +111,7 @@ ADD COLUMN match_id INT NULL AFTER week_number,
 ADD COLUMN minutes INT DEFAULT 0 AFTER turnovers,
 ADD COLUMN fantasy_points INT DEFAULT 0 AFTER minutes,
 ADD FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE SET NULL;
+
+
+ALTER TABLE user_team
+ADD COLUMN coach_id INT(11) UNSIGNED NULL;
