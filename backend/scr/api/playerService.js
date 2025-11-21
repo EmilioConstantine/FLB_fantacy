@@ -1,16 +1,34 @@
-// backend/scr/api/playerService.js
+// backend/scr/api/teamService.js
 import api from "./apiClient.js";
 
-export const PlayerService = {
-  getAll() {
-    return api.get("players/get_all_players.php");
+export const TeamService = {
+  /**
+   * Create a team for a user.
+   * payload = {
+   *   user_id: number,
+   *   week_number: number,
+   *   team_name: string,
+   *   players: number[],      // [playerId1, playerId2, ...]
+   *   coach_id: number,
+   *   captain_id: number      // must be one of players[]
+   * }
+   */
+  createTeam(payload) {
+    return api.post("team/create_team.php", payload);
   },
 
-  getStats(playerId) {
-    return api.get(`players/get_player_stats.php?player_id=${encodeURIComponent(playerId)}`);
+  /**
+   * Optional helpers for later:
+   */
+  getTeam({ user_id, week_number }) {
+    return api.get(
+      `team/get_team.php?user_id=${encodeURIComponent(user_id)}&week_number=${encodeURIComponent(week_number)}`
+    );
   },
 
-  search(name) {
-    return api.get(`players/search_players.php?name=${encodeURIComponent(name)}`);
+  checkTeamExists({ user_id, week_number }) {
+    return api.get(
+      `team/check_team_exits.php?user_id=${encodeURIComponent(user_id)}&week_number=${encodeURIComponent(week_number)}`
+    );
   }
 };
