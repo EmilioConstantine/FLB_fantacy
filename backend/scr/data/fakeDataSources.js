@@ -1,6 +1,7 @@
-// src/data/fakeDataSource.js
+// scr/data/fakeDataSources.js
 
 // In-memory "tables"
+// This is ONLY for testing / local dev
 
 // Users (id, username, budget_remaining, total_points)
 let users = [
@@ -10,27 +11,26 @@ let users = [
 
 // Players (id, name, team, position, price)
 let players = [
-  { id: 1, name: 'Player 1', team: 'Sagesse', position: 'G', price: 20 },
-  { id: 2, name: 'Player 2', team: 'Riyadi', position: 'F', price: 22 },
-  { id: 3, name: 'Player 3', team: 'Homenetmen', position: 'C', price: 18 },
-  { id: 4, name: 'Player 4', team: 'Champville', position: 'G', price: 16 },
-  { id: 5, name: 'Player 5', team: 'Byblos', position: 'F', price: 24 }
+  { id: 1, name: 'Player 1', team: 'Sagesse',   position: 'G', price: 20 },
+  { id: 2, name: 'Player 2', team: 'Riyadi',    position: 'F', price: 22 },
+  { id: 3, name: 'Player 3', team: 'Homenetmen',position: 'C', price: 18 },
+  { id: 4, name: 'Player 4', team: 'Champville',position: 'G', price: 16 },
+  { id: 5, name: 'Player 5', team: 'Byblos',    position: 'F', price: 24 }
 ];
 
 // Coaches (id, name, team, price, bonus_points)
 let coaches = [
-  { id: 1, name: 'Coach A', team: 'Sagesse', price: 10, bonus_points: 5 },
-  { id: 2, name: 'Coach B', team: 'Riyadi', price: 12, bonus_points: 5 }
+  { id: 10, name: 'Coach A', team: 'Sagesse', price: 10, bonus_points: 5 },
+  { id: 11, name: 'Coach B', team: 'Riyadi',  price: 12, bonus_points: 5 }
 ];
 
 // user_team (one per user)
 let userTeams = [
-  { user_id: 1, player1: 1, player2: 2, player3: 3, player4: 4, player5: 5, coach: 1 },
-  { user_id: 2, player1: 2, player2: 3, player3: 4, player4: 5, player5: 1, coach: 2 }
+  { user_id: 1, player1: 1, player2: 2, player3: 3, player4: 4, player5: 5, coach: 10 },
+  { user_id: 2, player1: 2, player2: 3, player3: 4, player4: 5, player5: 1, coach: 11 }
 ];
 
 // weekly_stats
-// For simplicity we store some test stats for week 1.
 let weeklyStats = [
   {
     player_id: 1,
@@ -52,7 +52,6 @@ let weeklyStats = [
     blocks: 0,
     turnovers: 3
   }
-  // add more if you want
 ];
 
 // user_points
@@ -69,7 +68,7 @@ function nextId(arr) {
 }
 
 module.exports = {
-  // ============= Core functions used by weeklyEngine =============
+  // ---------- Used by weeklyEngine ----------
 
   async getAllUserTeams() {
     return userTeams.map(t => {
@@ -104,13 +103,15 @@ module.exports = {
     if (existing) {
       existing.fantasy_points = fantasyPoints;
     } else {
-      userPoints.push({ user_id: userId, week_number: weekNumber, fantasy_points: fantasyPoints });
+      userPoints.push({
+        user_id: userId,
+        week_number: weekNumber,
+        fantasy_points: fantasyPoints
+      });
     }
 
-    // update user total_points incrementally
     const user = findUserById(userId);
     if (user) {
-      // recompute just for this user
       const total = userPoints
         .filter(up => up.user_id === userId)
         .reduce((sum, up) => sum + up.fantasy_points, 0);
@@ -136,7 +137,7 @@ module.exports = {
     }));
   },
 
-  // ============= Admin-like functions =============
+  // ---------- Admin helpers ----------
 
   async addPlayer(data) {
     const id = nextId(players);
@@ -158,7 +159,7 @@ module.exports = {
       name: data.name,
       team: data.team || null,
       price: data.price,
-      bonus_points: data.bonus_points || 5
+      bonus_points: data.bonus_points != null ? data.bonus_points : 5
     };
     coaches.push(coach);
     return coach;
@@ -224,14 +225,13 @@ module.exports = {
     });
   },
 
-  // ============= Team building with budget + duplicate check  =============
+  // ---------- Team building with validation ----------
 
   async saveUserTeamWithValidation(userId, playerIds, coachId) {
     if (!Array.isArray(playerIds) || playerIds.length !== 5) {
       throw new Error('You must select exactly 5 players.');
     }
 
-    // no duplicates
     const uniq = new Set(playerIds);
     if (uniq.size !== playerIds.length) {
       throw new Error('Duplicate players are not allowed.');
@@ -247,7 +247,6 @@ module.exports = {
 
     const coach = coaches.find(c => c.id === coachId);
     if (!coach) throw new Error('Coach not found.');
-
     const totalCost =
       selectedPlayers.reduce((sum, p) => sum + p.price, 0) + coach.price;
 
@@ -257,7 +256,6 @@ module.exports = {
       );
     }
 
-    // Save team
     const existing = userTeams.find(ut => ut.user_id === userId);
     if (existing) {
       existing.player1 = playerIds[0];
@@ -278,12 +276,39 @@ module.exports = {
       });
     }
 
-    // Update budget
     user.budget_remaining -= totalCost;
 
     return {
       totalCost,
       budget_remaining: user.budget_remaining
     };
+  },
+
+  // Expose raw data for tests if needed
+  __debug: {
+    get users() { return users; },
+    get players() { return players; },
+    get coaches() { return coaches; },
+    get userTeams() { return userTeams; },
+    resetAll() {
+      users = [
+        { id: 1, username: 'jimmy', budget_remaining: 200, total_points: 0 },
+        { id: 2, username: 'sara', budget_remaining: 100, total_points: 0 }
+      ];
+      players = [
+        { id: 1, name: 'Player 1', team: 'Sagesse',   position: 'G', price: 20 },
+        { id: 2, name: 'Player 2', team: 'Riyadi',    position: 'F', price: 22 },
+        { id: 3, name: 'Player 3', team: 'Homenetmen',position: 'C', price: 18 },
+        { id: 4, name: 'Player 4', team: 'Champville',position: 'G', price: 16 },
+        { id: 5, name: 'Player 5', team: 'Byblos',    position: 'F', price: 24 }
+      ];
+      coaches = [
+        { id: 10, name: 'Coach A', team: 'Sagesse', price: 10, bonus_points: 5 },
+        { id: 11, name: 'Coach B', team: 'Riyadi',  price: 12, bonus_points: 5 }
+      ];
+      userTeams = [];
+      weeklyStats = [];
+      userPoints = [];
+    }
   }
 };

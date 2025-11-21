@@ -1,12 +1,10 @@
-// src/core/leaderboardService.js
+// scr/core/leaderboardServices.js
 
-/**
- * Build leaderboard with ranks & ties using the dataSource.
- * dataSource.getLeaderboard(limit) must return:
- *   [{ userId, username, totalPoints }, ...]
- */
 async function getLeaderboardWithRanks(limit, dataSource) {
-  const rows = await dataSource.getLeaderboard(limit);
+  let rows = await dataSource.getLeaderboard(limit);
+
+  // IMPORTANT: sort by totalPoints DESC
+  rows = rows.sort((a, b) => b.totalPoints - a.totalPoints);
 
   let prevPoints = null;
   let rank = 0;
@@ -14,6 +12,7 @@ async function getLeaderboardWithRanks(limit, dataSource) {
 
   const leaderboard = rows.map(u => {
     position += 1;
+
     if (u.totalPoints !== prevPoints) {
       rank = position;
       prevPoints = u.totalPoints;

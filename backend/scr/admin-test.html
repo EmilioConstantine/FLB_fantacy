@@ -2,208 +2,138 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Fantasy Admin Tester</title>
+  <title>Test Add Player / Coach API</title>
   <style>
-    body {
-      font-family: Arial;
-      margin: 20px;
-    }
-    section {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
     input, select {
+      display: block;
       margin: 5px 0;
       padding: 6px;
-      width: 200px;
+      width: 260px;
     }
     button {
-      margin-top: 10px;
+      margin-top: 8px;
       padding: 8px 14px;
       cursor: pointer;
     }
     pre {
-      background: #f3f3f3;
-      padding: 10px;
-      border-radius: 6px;
-      max-height: 300px;
-      overflow: auto;
+      background:#f3f3f3;
+      padding:10px;
+      border-radius:6px;
+      max-height:260px;
+      overflow:auto;
+      font-size: 12px;
+    }
+    label { font-weight:bold; }
+    section {
+      border:1px solid #ccc;
+      padding:15px;
+      margin-bottom:20px;
+      border-radius:8px;
     }
   </style>
 </head>
 <body>
 
-<h1>Lebanese Fantasy Basketball – Admin Test Panel</h1>
+<h1>Test Add Player / Coach API</h1>
 
-<label>Backend URL:</label>
-<input id="backend" value="http://localhost:4000" style="width:300px"/>
+<label>API base URL (no trailing /):</label>
+<!-- This matches your XAMPP path: http://localhost/FLB_FANTACY/backend is root -->
+<input id="backend" value="http://localhost/FLB_FANTACY/backend/api" style="width:380px" />
 
 <hr>
 
-<!-- ========================================================= -->
+<!-- ========= ADD PLAYER ========= -->
 <section>
-  <h2>Add Player</h2>
-  <input id="player_name" placeholder="Player Name">
-  <input id="player_team" placeholder="Team">
-  <input id="player_position" placeholder="Position">
-  <input id="player_price" placeholder="Price">
+  <h2>Add Player (type = "player")</h2>
+  <input id="player_name"     placeholder="Player Name (name)" />
+  <input id="player_team"     placeholder="Team (team)" />
+  <input id="player_position" placeholder="Position (position: PG/SG/SF/PF/C)" />
+  <input id="player_price"    placeholder="Price (price, number)" />
+
   <button onclick="addPlayer()">Add Player</button>
+
+  <h3>Result</h3>
   <pre id="player_result"></pre>
 </section>
 
-<!-- ========================================================= -->
+<!-- ========= ADD COACH ========= -->
 <section>
-  <h2>Add Coach</h2>
-  <input id="coach_name" placeholder="Coach Name">
-  <input id="coach_team" placeholder="Team">
-  <input id="coach_price" placeholder="Price">
-  <input id="coach_bonus" placeholder="Bonus Points (default 5)">
+  <h2>Add Coach (type = "coach")</h2>
+  <input id="coach_name"   placeholder="Coach Name (name)" />
+  <input id="coach_team"   placeholder="Team (team)" />
+  <input id="coach_price"  placeholder="Price (price, number)" />
+  <input id="coach_bonus"  placeholder="Bonus Points (bonus_points, default 5)" />
+
   <button onclick="addCoach()">Add Coach</button>
+
+  <h3>Result</h3>
   <pre id="coach_result"></pre>
 </section>
 
-<!-- ========================================================= -->
-<section>
-  <h2>Update Weekly Stats</h2>
-  <input id="stat_player_id" placeholder="Player ID">
-  <input id="stat_week" placeholder="Week Number">
-  <input id="stat_pts" placeholder="Points">
-  <input id="stat_reb" placeholder="Rebounds">
-  <input id="stat_ast" placeholder="Assists">
-  <input id="stat_stl" placeholder="Steals">
-  <input id="stat_blk" placeholder="Blocks">
-  <input id="stat_to" placeholder="Turnovers">
-  <button onclick="updateStats()">Save Stats</button>
-  <pre id="stats_result"></pre>
-</section>
-
-<!-- ========================================================= -->
-<section>
-  <h2>Calculate Weekly Points</h2>
-  <input id="calc_week" placeholder="Week Number">
-  <button onclick="calcWeek()">Calculate</button>
-  <pre id="calc_result"></pre>
-</section>
-
-<!-- ========================================================= -->
-<section>
-  <h2>View Leaderboard</h2>
-  <button onclick="loadLeaderboard()">Load Leaderboard</button>
-  <pre id="leaderboard_result"></pre>
-</section>
-
-<!-- ========================================================= -->
-<section>
-  <h2>View All Teams</h2>
-  <button onclick="loadTeams()">Load Teams</button>
-  <pre id="teams_result"></pre>
-</section>
-
-<!-- ========================================================= -->
-<section>
-  <h2>Save Team (with validation)</h2>
-  <input id="team_user_id" placeholder="User ID">
-  <input id="team_players" placeholder="Player IDs (comma separated)">
-  <input id="team_coach" placeholder="Coach ID">
-  <button onclick="saveTeam()">Save Team</button>
-  <pre id="saveteam_result"></pre>
-</section>
-
 <script>
-function url(path) {
-  return document.getElementById("backend").value + path;
+function api(path) {
+  const base = document.getElementById('backend').value.replace(/\/$/, '');
+  if (!path.startsWith('/')) path = '/' + path;
+  return base + path;
 }
 
+/* ------------------ ADD PLAYER ------------------ */
 async function addPlayer() {
   const body = {
-    name: player_name.value,
-    team: player_team.value,
-    position: player_position.value,
-    price: Number(player_price.value)
+    type: "player", // IMPORTANT for your PHP
+    name: document.getElementById('player_name').value.trim(),
+    team: document.getElementById('player_team').value.trim(),
+    position: document.getElementById('player_position').value.trim(),
+    // remove spaces and convert to int to avoid "Missing fields" on PHP side
+    price: parseInt(document.getElementById('player_price').value.replace(/\s+/g, ''), 10)
   };
-  const res = await fetch(url("/api/admin/players"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  player_result.textContent = JSON.stringify(await res.json(), null, 2);
+
+  await callApi('/admin/admin_add_players.php', body, 'player_result');
 }
 
+/* ------------------ ADD COACH ------------------ */
 async function addCoach() {
   const body = {
-    name: coach_name.value,
-    team: coach_team.value,
-    price: Number(coach_price.value),
-    bonus_points: coach_bonus.value ? Number(coach_bonus.value) : undefined
-  };
-  const res = await fetch(url("/api/admin/coaches"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  coach_result.textContent = JSON.stringify(await res.json(), null, 2);
-}
-
-async function updateStats() {
-  const body = {
-    player_id: Number(stat_player_id.value),
-    week_number: Number(stat_week.value),
-    points: Number(stat_pts.value),
-    rebounds: Number(stat_reb.value),
-    assists: Number(stat_ast.value),
-    steals: Number(stat_stl.value),
-    blocks: Number(stat_blk.value),
-    turnovers: Number(stat_to.value)
-  };
-  const res = await fetch(url("/api/admin/weekly-stats"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  stats_result.textContent = JSON.stringify(await res.json(), null, 2);
-}
-
-async function calcWeek() {
-  const body = { week_number: Number(calc_week.value) };
-  const res = await fetch(url("/api/admin/calculate-week"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  calc_result.textContent = JSON.stringify(await res.json(), null, 2);
-}
-
-async function loadLeaderboard() {
-  const res = await fetch(url("/api/leaderboard"));
-  leaderboard_result.textContent = JSON.stringify(await res.json(), null, 2);
-}
-
-async function loadTeams() {
-  const res = await fetch(url("/api/admin/teams"));
-  teams_result.textContent = JSON.stringify(await res.json(), null, 2);
-}
-
-async function saveTeam() {
-  const playerIds = team_players.value
-    .split(",")
-    .map(s => Number(s.trim()))
-    .filter(n => !isNaN(n));
-
-  const body = {
-    user_id: Number(team_user_id.value),
-    player_ids: playerIds,
-    coach_id: Number(team_coach.value)
+    type: "coach", // IMPORTANT for your PHP
+    name: document.getElementById('coach_name').value.trim(),
+    team: document.getElementById('coach_team').value.trim(),
+    price: parseInt(document.getElementById('coach_price').value.replace(/\s+/g, ''), 10),
+    bonus_points: document.getElementById('coach_bonus').value
+      ? parseInt(document.getElementById('coach_bonus').value, 10)
+      : undefined
   };
 
-  const res = await fetch(url("/api/admin/save-team"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
+  await callApi('/admin/admin_add_players.php', body, 'coach_result');
+}
 
-  saveteam_result.textContent = JSON.stringify(await res.json(), null, 2);
+/* ------------------ HELPER: CALL API & SHOW DEBUG ------------------ */
+async function callApi(path, body, outputElementId) {
+  const el = document.getElementById(outputElementId);
+  let debug = '';
+
+  try {
+    const res = await fetch(api(path), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    debug += `HTTP ${res.status}\n`;
+    const text = await res.text();
+    debug += `Raw response:\n${text}\n`;
+
+    try {
+      const json = JSON.parse(text);
+      debug += `\nParsed as JSON:\n` + JSON.stringify(json, null, 2);
+    } catch (e) {
+      debug += `\n(Note: response is not valid JSON)`;
+    }
+
+    el.textContent = debug;
+  } catch (err) {
+    el.textContent = 'Fetch error: ' + err.message;
+  }
 }
 </script>
 
