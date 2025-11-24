@@ -19,18 +19,3 @@ if (!$conn) {
 }
 // After $conn = new mysqli(...);
 
-// --- CREATE DEFAULT ADMIN IF TABLE EMPTY ---
-$checkAdmin = $conn->query("SELECT COUNT(*) AS cnt FROM admin");
-$row = $checkAdmin->fetch_assoc();
-
-if ($row['cnt'] == 0) {
-    // insert default admin
-    $username = 'admin';
-    $password = password_hash('admin', PASSWORD_DEFAULT);
-
-    $stmt = $conn->prepare("INSERT INTO admin (username, password) VALUES (?, ?)");
-    $stmt->bind_param("ss", $username, $password);
-    $stmt->execute();
-}
-
-?>
