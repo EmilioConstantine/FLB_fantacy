@@ -1,6 +1,13 @@
 <?php
 require_once "../../config/db.php";
-require_once "require_admin.php";
+session_start();
+if (empty($_SESSION["is_admin"])) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Admin access only"
+    ]);
+    exit;
+}
 
 header("Content-Type: application/json");
 
