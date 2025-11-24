@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Save as: backend/scr/test-ui.html -->
   <meta charset="UTF-8" />
   <title>Fantasy Backend – Test UI</title>
   <style>
@@ -29,6 +28,17 @@
       margin-top: 8px;
     }
     hr { margin: 18px 0; }
+    .block {
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+    }
+    .summary {
+      background: #fffde7;
+      border: 1px solid #e0c200;
+      padding: 8px;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -36,113 +46,156 @@
 <h1>Fantasy Backend – Test UI</h1>
 
 <!-- 0. REGISTER -->
-<h2>0. Register User (auth/register.php)</h2>
-<label>Username</label>
-<input id="r_username" placeholder="jimmy" />
-<label>Email</label>
-<input id="r_email" placeholder="jimmy@example.com" />
-<label>Password</label>
-<input id="r_password" type="password" placeholder="123456" />
-<button id="btnRegister">Register</button>
-<h3>Register Response</h3>
-<pre id="outRegister"></pre>
+<div class="block">
+  <h2>0. Register User (auth/register.php)</h2>
+  <label>Username</label>
+  <input id="r_username" placeholder="jimmy" />
+  <label>Email</label>
+  <input id="r_email" placeholder="jimmy@example.com" />
+  <label>Password</label>
+  <input id="r_password" type="password" placeholder="123456" />
+  <button id="btnRegister">Register</button>
+  <h3>Register Response</h3>
+  <pre id="outRegister"></pre>
+</div>
 
 <!-- 0b. LOGIN -->
-<h2>0b. Login User (auth/login.php)</h2>
-<label>Email</label>
-<input id="l_email" placeholder="jimmy@example.com" />
-<label>Password</label>
-<input id="l_password" type="password" placeholder="123456" />
-<button id="btnLogin">Login</button>
-<button id="btnLogout">Logout</button>
-<h3>Login Response / Current User</h3>
-<pre id="outLogin"></pre>
+<div class="block">
+  <h2>0b. Login User (auth/login.php)</h2>
+  <label>Email</label>
+  <input id="l_email" placeholder="jimmy@example.com" />
+  <label>Password</label>
+  <input id="l_password" type="password" placeholder="123456" />
+  <button id="btnLogin">Login</button>
+  <button id="btnLogout">Logout</button>
+  <h3>Login Response / Current User</h3>
+  <pre id="outLogin"></pre>
+</div>
 
 <hr />
 
 <!-- 1. ADD PLAYER -->
-<h2>1. Add Player (admin/admin_add_players.php)</h2>
-<label>Name</label>
-<input id="p_name" placeholder="Player Name" />
-<label>Team</label>
-<input id="p_team" placeholder="Team Name" />
-<label>Position</label>
-<input id="p_position" placeholder="PG/SG/SF/PF/C" />
-<label>Price</label>
-<input id="p_price" type="number" placeholder="10" />
-<button id="btnAddPlayer">Add Player</button>
-<h3>Response</h3>
-<pre id="outAddPlayer"></pre>
+<div class="block">
+  <h2>1. Add Player (admin/admin_add_players.php)</h2>
+  <label>Name</label>
+  <input id="p_name" placeholder="Player Name" />
+  <label>Team</label>
+  <input id="p_team" placeholder="Team Name" />
+  <label>Position</label>
+  <input id="p_position" placeholder="PG/SG/SF/PF/C" />
+  <label>Price</label>
+  <input id="p_price" type="number" placeholder="10" />
+  <button id="btnAddPlayer">Add Player</button>
+  <h3>Player Response</h3>
+  <pre id="outAddPlayer"></pre>
+</div>
+
+<!-- 1b. ADD COACH -->
+<div class="block">
+  <h2>1b. Add Coach (admin/admin_add_players.php)</h2>
+  <label>Name</label>
+  <input id="c_name" placeholder="Coach Name" />
+  <label>Team</label>
+  <input id="c_team" placeholder="Team Name" />
+  <label>Price</label>
+  <input id="c_price" type="number" placeholder="10" />
+  <label>Bonus Points</label>
+  <input id="c_bonus" type="number" placeholder="5 (default)" />
+  <button id="btnAddCoach">Add Coach</button>
+  <h3>Coach Response</h3>
+  <pre id="outAddCoach"></pre>
+</div>
 
 <!-- 2. LOAD PLAYERS -->
-<h2>2. Get All Players (players/get_all_players.php)</h2>
-<button id="btnLoadPlayers">Load Players</button>
-<h3>Response</h3>
-<pre id="outPlayers"></pre>
+<div class="block">
+  <h2>2. Get All Players (players/get_all_players.php)</h2>
+  <button id="btnLoadPlayers">Load Players</button>
+  <h3>Response</h3>
+  <pre id="outPlayers"></pre>
+</div>
+
+<!-- 2b. LOAD COACHES -->
+<div class="block">
+  <h2>2b. Get All Coaches (players/get_all_coaches.php)</h2>
+  <button id="btnLoadCoaches">Load Coaches</button>
+  <h3>Response</h3>
+  <pre id="outCoaches"></pre>
+</div>
 
 <!-- 3. ADD WEEKLY STATS -->
-<h2>3. Add Weekly Stats (admin/admin_add_stats.php)</h2>
-<label>Player ID</label>
-<input id="s_player_id" type="number" placeholder="1" />
-<label>Week</label>
-<input id="s_week" type="number" placeholder="1" /><br />
-<label>Pts</label>
-<input id="s_points" type="number" placeholder="10" />
-<label>Reb</label>
-<input id="s_rebounds" type="number" placeholder="5" />
-<label>Ast</label>
-<input id="s_assists" type="number" placeholder="3" />
-<label>Stl</label>
-<input id="s_steals" type="number" placeholder="2" />
-<label>Blk</label>
-<input id="s_blocks" type="number" placeholder="1" />
-<label>Tov</label>
-<input id="s_turnovers" type="number" placeholder="2" />
-<label>Min</label>
-<input id="s_minutes" type="number" placeholder="30" />
-<br />
-<button id="btnAddStats">Add Stats</button>
-<h3>Response</h3>
-<pre id="outStats"></pre>
+<div class="block">
+  <h2>3. Add Weekly Stats (admin/admin_add_stats.php)</h2>
+  <label>Player ID</label>
+  <input id="s_player_id" type="number" placeholder="1" />
+  <label>Week</label>
+  <input id="s_week" type="number" placeholder="1" /><br />
+  <label>Pts</label>
+  <input id="s_points" type="number" placeholder="10" />
+  <label>Reb</label>
+  <input id="s_rebounds" type="number" placeholder="5" />
+  <label>Ast</label>
+  <input id="s_assists" type="number" placeholder="3" />
+  <label>Stl</label>
+  <input id="s_steals" type="number" placeholder="2" />
+  <label>Blk</label>
+  <input id="s_blocks" type="number" placeholder="1" />
+  <label>Tov</label>
+  <input id="s_turnovers" type="number" placeholder="2" />
+  <label>Min</label>
+  <input id="s_minutes" type="number" placeholder="30" />
+  <br />
+  <button id="btnAddStats">Add Stats</button>
+  <h3>Response</h3>
+  <pre id="outStats"></pre>
+</div>
 
 <!-- 4. LEADERBOARD -->
-<h2>4. Leaderboard (leaderboard/get_leaderboard.php)</h2>
-<button id="btnLeaderboard">Get Leaderboard</button>
-<h3>Response</h3>
-<pre id="outLeaderboard"></pre>
+<div class="block">
+  <h2>4. Leaderboard (leaderboard/get_leaderboard.php)</h2>
+  <button id="btnLeaderboard">Get Leaderboard</button>
+  <h3>Response</h3>
+  <pre id="outLeaderboard"></pre>
+</div>
 
 <!-- 5. CREATE TEAM -->
-<h2>5. Create Team (team/create_team.php)</h2>
-<p><strong>⚠️ Players must be comma-separated like: <code>1,2,3,4,5</code></strong></p>
+<div class="block">
+  <h2>5. Create Team (team/create_team.php)</h2>
+  <p><strong>⚠️ Players must be comma-separated like: <code>1,2,3,4,5</code></strong></p>
 
-<label>User ID</label>
-<input id="t_user_id" type="number" placeholder="1" />
-<label>Week</label>
-<input id="t_week" type="number" placeholder="1" /><br />
+  <label>User ID</label>
+  <input id="t_user_id" type="number" placeholder="1" />
+  <label>Week</label>
+  <input id="t_week" type="number" placeholder="1" /><br />
 
-<label>Team Name</label>
-<input id="t_team_name" placeholder="My Fantasy Team" /><br />
+  <label>Team Name</label>
+  <input id="t_team_name" placeholder="My Fantasy Team" /><br />
 
-<label>Player IDs (comma)</label>
-<input id="t_players" placeholder="1,2,3,4,5" />
-<label>Coach ID</label>
-<input id="t_coach_id" type="number" placeholder="1" />
-<label>Captain Player ID</label>
-<input id="t_captain_id" type="number" placeholder="1" />
-<br />
-<button id="btnCreateTeam">Create Team</button>
-<h3>Response</h3>
-<pre id="outCreateTeam"></pre>
+  <label>Player IDs (comma)</label>
+  <input id="t_players" placeholder="1,2,3,4,5" />
+  <label>Coach ID</label>
+  <input id="t_coach_id" type="number" placeholder="1" />
+  <label>Captain Player ID</label>
+  <input id="t_captain_id" type="number" placeholder="1" />
+  <br />
+  <button id="btnCreateTeam">Create Team</button>
+  <h3>Response</h3>
+  <pre id="outCreateTeam"></pre>
+</div>
 
 <!-- 6. GET USER TEAM -->
-<h2>6. Get User Team (team/get_team.php)</h2>
-<label>User ID</label>
-<input id="gt_user_id" type="number" placeholder="1" />
-<label>Week</label>
-<input id="gt_week" type="number" placeholder="1" />
-<button id="btnGetTeam">Get Team</button>
-<h3>Response</h3>
-<pre id="outGetTeam"></pre>
+<div class="block">
+  <h2>6. Get User Team (team/get_team.php)</h2>
+  <label>User ID</label>
+  <input id="gt_user_id" type="number" placeholder="1" />
+  <label>Week</label>
+  <input id="gt_week" type="number" placeholder="1" />
+  <button id="btnGetTeam">Get Team</button>
+
+  <div id="teamSummary" class="summary" style="display:none;"></div>
+
+  <h3>Response</h3>
+  <pre id="outGetTeam"></pre>
+</div>
 
 <script>
   // ===== CONFIG =====
@@ -230,10 +283,33 @@
     showJson("outAddPlayer", res);
   });
 
+  // ===== 1b) ADD COACH =====
+  document.getElementById("btnAddCoach").addEventListener("click", async () => {
+    const name = document.getElementById("c_name").value.trim();
+    const team = document.getElementById("c_team").value.trim();
+    const price = Number(document.getElementById("c_price").value);
+    const bonus_points = Number(document.getElementById("c_bonus").value || 5);
+
+    const res = await postJson("admin/admin_add_players.php", {
+      type: "coach",
+      name,
+      team,
+      price,
+      bonus_points,
+    });
+    showJson("outAddCoach", res);
+  });
+
   // ===== 2) LOAD PLAYERS =====
   document.getElementById("btnLoadPlayers").addEventListener("click", async () => {
     const res = await getJson("players/get_all_players.php");
     showJson("outPlayers", res);
+  });
+
+  // ===== 2b) LOAD COACHES =====
+  document.getElementById("btnLoadCoaches").addEventListener("click", async () => {
+    const res = await getJson("players/get_all_coaches.php");
+    showJson("outCoaches", res);
   });
 
   // ===== 3) ADD WEEKLY STATS =====
@@ -264,9 +340,8 @@
     showJson("outLeaderboard", res);
   });
 
-  // ===== 5) CREATE TEAM (matches YOUR create_team.php) =====
+  // ===== 5) CREATE TEAM =====
   document.getElementById("btnCreateTeam").addEventListener("click", async () => {
-    // Use logged-in user if available; else manual input
     const manualUserId = Number(document.getElementById("t_user_id").value);
     const user_id = currentUser ? currentUser.id : manualUserId;
 
@@ -282,7 +357,6 @@
     const coach_id = Number(document.getElementById("t_coach_id").value);
     const captain_id = Number(document.getElementById("t_captain_id").value);
 
-    // quick front-end check to avoid "All fields required"
     if (!user_id || !week_number || !team_name || players.length === 0 || !coach_id || !captain_id) {
       showJson("outCreateTeam", {
         success: false,
@@ -312,7 +386,24 @@
     const res = await getJson(
       `team/get_team.php?user_id=${encodeURIComponent(user_id)}&week_number=${encodeURIComponent(week_number)}`
     );
+
     showJson("outGetTeam", res);
+
+    const summaryBox = document.getElementById("teamSummary");
+
+    if (res.success && res.team) {
+      const t = res.team;
+      summaryBox.style.display = "block";
+      summaryBox.innerHTML =
+        `<strong>Team:</strong> ${t.team_name} (Week ${t.week_number})<br>` +
+        `<strong>Total Cost:</strong> ${t.total_cost}<br>` +
+        `<strong>Budget Remaining:</strong> ${t.budget_remaining}<br>` +
+        `<strong>Players:</strong> ${t.players.map(p => p.name + (p.is_captain ? " (C)" : "")).join(", ")}<br>` +
+        `<strong>Coach:</strong> ${t.coach ? t.coach.name : "None"}`;
+    } else {
+      summaryBox.style.display = "none";
+      summaryBox.innerHTML = "";
+    }
   });
 </script>
 </body>

@@ -1,21 +1,40 @@
 // backend/scr/api/apiClient.js
-const BASE_URL = "http://localhost/FLB_FANTACY/backend/api"; // use your real path & case
 
-async function request(endpoint, method = "GET", body = null) {
-  const options = { method, headers: {} };
+// Make sure this matches your real path (watch upper/lower case)
+const BASE_URL = "http://localhost/FLB_FANTACY/backend/api/";
 
-  if (body) {
-    options.headers["Content-Type"] = "application/json";
-    options.body = JSON.stringify(body);
+/**
+ * Low-level request helper
+ * @param {string} endpoint - e.g. "admin/admin_add_players.php"
+ * @param {Object} options  - fetch options: { method, body }
+ */
+async function request(endpoint, { method = "GET", body = null } = {}) {
+  const url = BASE_URL + endpoint;
+
+  const fetchOptions = {
+    method,
+    headers: {}
+  };
+
+  if (body !== null && body !== undefined) {
+    fetchOptions.headers["Content-Type"] = "application/json";
+    fetchOptions.body = JSON.stringify(body);
+
+    // 🔍 DEBUG: see exactly what is being sent (including type)
+    console.log(`[API ${method}]`, url, "payload:", body);
+  } else {
+    console.log(`[API ${method}]`, url);
   }
 
   try {
-    const response = await fetch(`${BASE_URL}/${endpoint}`, options);
+    const response = await fetch(url, fetchOptions);
     const text = await response.text();
 
     try {
-      return JSON.parse(text); // valid JSON from PHP
+      // Try to parse JSON from PHP
+      return JSON.parse(text);
     } catch (e) {
+      // PHP threw a warning/notice or echoed HTML
       return {
         success: false,
         error: "Response was not valid JSON",
@@ -23,7 +42,7 @@ async function request(endpoint, method = "GET", body = null) {
       };
     }
   } catch (err) {
-    // network / CORS / fetch error
+    // Network / CORS / fetch error
     return {
       success: false,
       error: "Fetch failed: " + err.message
@@ -31,7 +50,13 @@ async function request(endpoint, method = "GET", body = null) {
   }
 }
 
-export default {
-  get: (endpoint) => request(endpoint, "GET"),
-  post: (endpoint, body) => request(endpoint, "POST", body)
+const apiClient = {
+  get(endpoint) {
+    return request(endpoint, { method: "GET" });
+  },
+  post(endpoint, body) {
+    return request(endpoint, { method: "POST", body });
+  }
 };
+
+export default apiClient;
