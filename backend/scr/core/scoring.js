@@ -1,6 +1,16 @@
 // src/core/scoring.js
 
-// You can tweak these later if you want different weights.
+// We keep the same weights as in PHP admin_add_stats.php:
+//
+// $score = $points
+//        + 1.2 * $rebounds
+//        + 1.5 * $assists
+//        + 3   * $steals
+//        + 3   * $blocks
+//        - 1   * $turnovers;
+//
+// return (int) round($score);
+
 const SCORING = {
   points: 1,
   rebounds: 1.2,
@@ -12,36 +22,48 @@ const SCORING = {
 
 /**
  * Calculate fantasy points for a player based on their weekly stats.
- * stats = { points, rebounds, assists, steals, blocks, turnovers }
+ *
+ * stats shape (can come from DB weekly_stats or a plain object):
+ *   {
+ *     points,
+ *     rebounds,
+ *     assists,
+ *     steals,
+ *     blocks,
+ *     turnovers
+ *   }
+ *
+ * Returns an integer, same as PHP.
  */
 function calculatePlayerFantasyPoints(stats = {}) {
-  const p = stats.points || 0;
-  const r = stats.rebounds || 0;
-  const a = stats.assists || 0;
-  const s = stats.steals || 0;
-  const b = stats.blocks || 0;
-  const to = stats.turnovers || 0;
+  const p  = Number(stats.points    || 0);
+  const r  = Number(stats.rebounds  || 0);
+  const a  = Number(stats.assists   || 0);
+  const s  = Number(stats.steals    || 0);
+  const b  = Number(stats.blocks    || 0);
+  const to = Number(stats.turnovers || 0);
 
-  const total =
-    p * SCORING.points +
-    r * SCORING.rebounds +
-    a * SCORING.assists +
-    s * SCORING.steals +
-    b * SCORING.blocks +
+  const score =
+    p  * SCORING.points   +
+    r  * SCORING.rebounds +
+    a  * SCORING.assists  +
+    s  * SCORING.steals   +
+    b  * SCORING.blocks   +
     to * SCORING.turnovers;
 
-  return Math.round(total * 10) / 10; // round to 1 decimal
+  // EXACT mirror of PHP: (int) round($score)
+  return Math.round(score);
 }
 
 /**
- * coachRow = { bonus_points }
- * For now we give the static bonus every week if the coach is selected.
- * Later you could make this depend on real wins.
+ * Coach bonus points.
+ *
+ * coachRow shape (from DB "coaches"):
+ *   { id, name, team, price, bonus_points }
  */
 function calculateCoachBonus(coachRow) {
   if (!coachRow) return 0;
-  const bonus = coachRow.bonus_points || 0;
-  return bonus;
+  return Number(coachRow.bonus_points || 0);
 }
 
 module.exports = {

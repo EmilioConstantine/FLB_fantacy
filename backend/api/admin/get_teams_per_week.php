@@ -1,5 +1,7 @@
 <?php
 require_once "../../config/db.php";
+require_once "require_admin.php";
+
 
 $week_number = $_GET["week_number"] ?? null;
 
