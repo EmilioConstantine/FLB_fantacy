@@ -4,6 +4,7 @@
     --flb-green: #00A651;
     /* Official Cedar Green */
     --flb-dark: #1A1A1A;
+    /* Dark / black */
     --text-gray: #6B7280;
     --bg-light: #F9FAFB;
 }
@@ -18,7 +19,7 @@ body {
 }
 
 
-/* Typography & Branding */
+/* Branding helpers */
 
 .text-flb-red {
     color: var(--flb-red);
@@ -42,9 +43,14 @@ body {
 .btn-primary {
     background-color: var(--flb-red);
     color: white;
-    padding: 5px 15px;
-    border-radius: 5px;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
     cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-primary:hover {
@@ -56,139 +62,133 @@ body {
     color: var(--flb-dark);
     border: 1px solid #E5E7EB;
     font-weight: 600;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 1rem;
     border-radius: 0.5rem;
     width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 
-/* Court Visualization */
+/* Court */
 
 .court-container {
     position: relative;
     width: 100%;
-    aspect-ratio: 3 / 3.8;
-    /* Adjust aspect ratio */
+    aspect-ratio: 3 / 2.2;
     background-image: url('../images/court.png');
-    /* Set basketball court image */
     background-size: cover;
     background-position: center;
     border: 4px solid var(--flb-red);
-    border-radius: 12px;
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+    border-radius: 14px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.12);
     margin-bottom: 1rem;
 }
 
 
-/* Fallback lines if image fails or isn't ready */
-
-.court-line {
-    position: absolute;
-    border: 2px solid rgba(255, 255, 255, 0.6);
-}
-
-.three-point-arc {
-    top: 0;
-    left: 10%;
-    right: 10%;
-    height: 40%;
-    border-radius: 0 0 50% 50%;
-    border-top: none;
-}
-
-.paint-area {
-    top: 0;
-    left: 35%;
-    right: 35%;
-    height: 25%;
-    background-color: rgba(206, 17, 38, 0.1);
-    border-top: none;
-}
-
-.center-circle {
-    top: 50%;
-    left: 50%;
-    width: 80px;
-    height: 80px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-}
-
-
-/* Player Markers */
+/* Player marker container (for positioning only) */
 
 .player-marker {
+    position: absolute;
+    width: 60px;
+    height: 60px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    color: white;
-    position: absolute;
     cursor: pointer;
-    transition: transform 0.2s ease;
-    z-index: 1;
 }
 
+
+/* Positions on court */
+
 #pos-PG {
-    top: 20%;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 52%;
+    left: 36%;
+    transform: translate(-50%, -50%);
 }
 
 #pos-SG {
-    top: 10%;
-    left: 15%;
+    top: 52%;
+    left: 64%;
+    transform: translate(-50%, -50%);
 }
 
 #pos-SF {
-    top: 10%;
-    right: 15%;
+    top: 22%;
+    left: 32%;
+    transform: translate(-50%, -50%);
 }
 
 #pos-PF {
-    bottom: 10%;
-    left: 25%;
+    top: 22%;
+    left: 68%;
+    transform: translate(-50%, -50%);
 }
 
 #pos-C {
-    bottom: 20%;
+    top: 33%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
 }
 
 #pos-COACH {
-    bottom: 10%;
-    right: 50%;
-    transform: translateX(50%);
+    bottom: 6%;
+    left: 50%;
+    transform: translate(-50%, 50%);
 }
 
-.player-marker:hover {
-    transform: translate(-50%, -50%) scale(1.1);
-}
+
+/* Actual jersey circle */
 
 .jersey-icon {
-    width: 45px;
-    height: 45px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
-    background-color: #9CA3AF;
-    /* Default color */
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 11px !important;
+    /* force over Tailwind */
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    text-transform: uppercase;
     color: white;
-    border: 2px solid white;
-    font-weight: bold;
+    border: 4px solid white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    background-color: #e5e7eb;
+    /* base before classes */
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-.player-label {
-    margin-top: 4px;
-    background: rgba(0, 0, 0, 0.8);
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 10px;
-    white-space: nowrap;
+.jersey-icon:hover {
+    transform: scale(1.06);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+
+/* Empty vs filled states (applied on jersey-icon) */
+
+.empty-marker {
+    background-color: #fef2f2 !important;
+    /* very light red */
+    color: var(--flb-dark) !important;
+    border-color: #fecaca !important;
+}
+
+.filled-marker {
+    background-color: var(--flb-red) !important;
+    /* players = red */
+    color: white !important;
+    border-color: white !important;
+}
+
+
+/* Coach variant (black when filled) */
+
+.coach-filled {
+    background-color: var(--flb-dark) !important;
 }
 
 
@@ -196,7 +196,7 @@ body {
 
 .nav-item {
     color: #9CA3AF;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -208,63 +208,9 @@ body {
     color: var(--flb-red);
 }
 
-.nav-item.active i {
-    font-size: 1.4rem;
-    margin-bottom: -2px;
-}
-
-
-/* Header consistency */
-
-header {
-    background-color: #fff;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
-}
-
-header .header-title {
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: var(--flb-red);
-    margin-left: 1rem;
-}
-
-header .header-icon {
-    width: 2.5rem;
-    height: 2.5rem;
-    background-color: var(--flb-red);
-    border-radius: 0.375rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-size: 1rem;
-    font-weight: bold;
-}
-
-
-/* Button Hover States */
-
-.btn-primary,
-.btn-secondary {
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.btn-primary:hover,
-.btn-secondary:hover {
-    transform: scale(1.05);
-}
-
-.btn-primary:focus,
-.btn-secondary:focus {
-    outline: 2px solid var(--flb-red);
-}
-
-
-/* Icon Button Enhancements */
-
 .nav-item i {
     transition: transform 0.3s ease;
+    margin-bottom: 3px;
 }
 
 .nav-item:hover i {
@@ -272,102 +218,56 @@ header .header-icon {
 }
 
 
-/* Modal Improvements */
+/* Header */
+
+header {
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+}
+
+
+/* Modal */
 
 #player-selection-area {
     position: absolute;
+    left: 50%;
     top: 50%;
-    right: 0;
-    transform: translateY(-50%);
-    width: 300px;
-    /* Adjust width of the list */
-    max-height: 80vh;
+    transform: translate(-50%, -50%);
+    width: min(360px, 100%);
+    max-height: 70vh;
     overflow-y: auto;
     z-index: 1000;
 }
 
-#player-selection-area.open {
-    transform: scale(1);
+.player-item {
+    padding: 0.6rem 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-#player-selection-area.closed {
-    transform: scale(0);
-}
 
-
-/* Bottom Navigation Improvements */
+/* Bottom nav */
 
 nav {
-    background-color: var(--bg-light);
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    z-index: 50;
-}
-
-.nav-item {
-    font-size: 0.875rem;
-    color: #6B7280;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    padding: 0.5rem;
-    transition: color 0.3s ease, transform 0.3s ease;
-}
-
-.nav-item:hover {
-    color: var(--flb-red);
-    transform: scale(1.1);
-}
-
-.nav-item i {
-    margin-bottom: 4px;
-}
-
-.nav-item.active {
-    color: var(--flb-red);
+    background-color: #ffffff;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
 }
 
 
-/* Mobile First Layout Enhancements */
+/* Mobile tweaks */
 
 @media (max-width: 640px) {
     .court-container {
         aspect-ratio: 1 / 1;
-        /* Make the court square on smaller screens */
-    }
-    .nav-item {
-        font-size: 0.75rem;
-    }
-    .btn-primary,
-    .btn-secondary {
-        padding: 1rem;
     }
     .player-marker {
-        font-size: 0.8rem;
+        width: 52px;
+        height: 52px;
     }
     .jersey-icon {
-        width: 35px;
-        height: 35px;
-        font-size: 12px;
-    }
-    #players-list-container {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .player-item {
-        padding: 10px;
-        background-color: #f4f4f4;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .player-item:hover {
-        background-color: #e1e1e1;
+        width: 40px;
+        height: 40px;
+        font-size: 10px !important;
     }
 }

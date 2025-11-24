@@ -42,27 +42,25 @@
             <!-- Player Positions -->
             <div class="player-marker" id="pos-PG" onclick="openPlayerModal('PG')">
                 <div id="name-PG" class="jersey-icon">PG</div>
-                <div class="player-label">Select</div>
             </div>
             <div class="player-marker" id="pos-SG" onclick="openPlayerModal('SG')">
                 <div id="name-SG" class="jersey-icon">SG</div>
-                <div class="player-label">Select</div>
+
             </div>
             <div class="player-marker" id="pos-SF" onclick="openPlayerModal('SF')">
                 <div id="name-SF" class="jersey-icon">SF</div>
-                <div class="player-label">Select</div>
+
             </div>
             <div class="player-marker" id="pos-PF" onclick="openPlayerModal('PF')">
                 <div id="name-PF" class="jersey-icon">PF</div>
-                <div class="player-label">Select</div>
+
             </div>
             <div class="player-marker" id="pos-C" onclick="openPlayerModal('C')">
                 <div id="name-C" class="jersey-icon">C</div>
-                <div class="player-label">Select</div>
+
             </div>
             <div class="player-marker" id="pos-COACH" onclick="openPlayerModal('COACH')">
                 <div id="name-COACH" class="jersey-icon">COACH</div>
-                <div class="player-label">Select</div>
             </div>
         </div>
 
@@ -84,15 +82,24 @@
         </div>
 
         <!-- BOTTOM NAV -->
+        <!-- BOTTOM NAV -->
         <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-between px-6 py-3 z-50">
-            <a href="team-builder.html" class="nav-item active"><i class="fas fa-tshirt"></i><span>Team</span></a>
+            <a href="team-builder.html" class="nav-item"><i class="fas fa-tshirt"></i><span>Team</span></a>
             <a href="leaderboard.html" class="nav-item"><i class="fas fa-trophy"></i><span>Rank</span></a>
+
+            <!-- CENTER FLOATING RESET BUTTON -->
             <div class="relative -top-8">
-                <a href="team-builder.html" class="bg-flb-green text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl border-4 border-white"><i class="fas fa-plus"></i></a>
+                <button onclick="resetTeam()" class="bg-flb-red text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-xs font-bold border-4 border-white">
+            Reset
+        </button>
             </div>
+
             <a href="my-team.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
             <a href="rules.html" class="nav-item"><i class="fas fa-book"></i><span>Rules</span></a>
         </nav>
+
+
+
 
 
         <script src="js/app.js"></script>
