@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Full Fantasy Backend – JS Services Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1, h2 { margin-top: 24px; }
+    label { font-weight: bold; margin-right: 4px; }
+    input, select {
+      margin: 4px;
+      padding: 4px 6px;
+    }
+    button {
+      padding: 5px 10px;
+      margin: 6px 0;
+      cursor: pointer;
+    }
+    pre {
+      background: #fcfcfc;
+      border: 1px solid #ddd;
+      padding: 10px;
+      white-space: pre-wrap;
+      margin-top: 8px;
+    }
+    hr { margin: 24px 0; }
+    fieldset {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 20px;
+      background: #ffffff;
+    }
+    legend {
+      font-weight: bold;
+    }
+    #admin-ui {
+      border: 2px solid #f39c12;
+      background: #fff9e6;
+    }
+    .warning {
+      color: #c0392b;
+      font-weight: bold;
+    }
+    .small {
+      font-size: 12px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Full Fantasy Backend – JS Services Test</h1>
+
+<p class="small">
+  This page tests ONLY your JS services (authService, adminService, playerService, etc.).<br/>
+  Served from:<br/>
+  <code>http://localhost/FLB_FANTACY/backend/scr/js-test.html</code>
+</p>
+
+<!-- ========================================================= -->
+<!-- 0. USER AUTH                                             -->
+<!-- ========================================================= -->
+<fieldset>
+  <legend>0. User Register (AuthService.register → auth/register.php)</legend>
+  <label>Username</label>
+  <input id="r_username" placeholder="jimmy" />
+  <label>Email</label>
+  <input id="r_email" placeholder="jimmy@example.com" />
+  <label>Password</label>
+  <input id="r_password" type="password" placeholder="123456" />
+  <button id="btnRegister">Register</button>
+  <h4>Response</h4>
+  <pre id="outRegister"></pre>
+</fieldset>
+
+<fieldset>
+  <legend>0b. User Login / Logout (AuthService.login → auth/login.php)</legend>
+  <label>Email</label>
+  <input id="l_email" placeholder="jimmy@example.com" />
+  <label>Password</label>
+  <input id="l_password" type="password" placeholder="123456" />
+  <button id="btnLogin">Login</button>
+  <button id="btnLogout">Logout (client)</button>
+  <h4>Current User / Login Response</h4>
+  <pre id="outLogin"></pre>
+</fieldset>
+
+<!-- ========================================================= -->
+<!-- 1. ADMIN AUTH                                             -->
+<!-- ========================================================= -->
+<fieldset>
+  <legend>1. Admin Login / Logout (AdminService.login → admin/login.php)</legend>
+  <p class="warning">
+    Requires <code>backend/api/admin/login.php</code> and an admin row in the <code>admin</code> table.
+  </p>
+  <label>Admin Username</label>
+  <input id="a_username" placeholder="admin" />
+  <label>Password</label>
+  <input id="a_password" type="password" placeholder="admin" />
+  <button id="btnAdminLogin">Login as Admin</button>
+  <button id="btnAdminLogout">Logout Admin (client)</button>
+  <h4>Admin Login Response</h4>
+  <pre id="outAdminLogin"></pre>
+</fieldset>
+
+<hr>
+
+<!-- ========================================================= -->
+<!-- PLAYER UI                                                 -->
+<!-- ========================================================= -->
+<div id="player-ui">
+  <h2>PLAYER AREA</h2>
+
+  <!-- 2. PLAYERS & COACHES (public) -->
+  <fieldset>
+    <legend>2. Load Players & Coaches (PlayerService / CoachService)</legend>
+    <button id="btnLoadPlayers">PlayerService.getAll()</button>
+    <button id="btnLoadCoaches">CoachService.getAll()</button>
+    <h4>Players Response</h4>
+    <pre id="outPlayers"></pre>
+    <h4>Coaches Response</h4>
+    <pre id="outCoaches"></pre>
+  </fieldset>
+
+  <!-- 3. CREATE TEAM -->
+  <fieldset>
+    <legend>3. Create Team (TeamService.createTeam → team/create_team.php)</legend>
+    <p><strong>⚠️</strong> Player IDs must be comma separated: e.g. <code>1,2,3,4,5</code></p>
+
+    <label>User ID</label>
+    <input id="t_user_id" type="number" placeholder="1" />
+    <span class="small">(if logged in, you can leave this empty and it will use <code>currentUser.id</code>)</span><br />
+
+    <label>Week</label>
+    <input id="t_week" type="number" placeholder="1" /><br />
+
+    <label>Team Name</label>
+    <input id="t_team_name" placeholder="My Fantasy Team" /><br />
+
+    <label>Player IDs (comma)</label>
+    <input id="t_players" placeholder="1,2,3,4,5" />
+    <label>Coach ID</label>
+    <input id="t_coach_id" type="number" placeholder="1" />
+    <label>Captain Player ID</label>
+    <input id="t_captain_id" type="number" placeholder="1" />
+    <br />
+
+    <button id="btnCreateTeam">Create Team</button>
+    <h4>Create Team Response</h4>
+    <pre id="outCreateTeam"></pre>
+  </fieldset>
+
+  <!-- 4. GET USER TEAM -->
+  <fieldset>
+    <legend>4. Get User Team (TeamService.getTeam → team/get_team.php)</legend>
+    <label>User ID</label>
+    <input id="gt_user_id" type="number" placeholder="1" />
+    <label>Week</label>
+    <input id="gt_week" type="number" placeholder="1" />
+    <button id="btnGetTeam">Get Team</button>
+    <h4>Raw JSON Response</h4>
+    <pre id="outGetTeamJson"></pre>
+    <h4>Pretty Summary</h4>
+    <pre id="outGetTeamPretty"></pre>
+  </fieldset>
+
+  <!-- 5. LEADERBOARD -->
+  <fieldset>
+    <legend>5. Leaderboard (LeaderboardService.getLeaderboard → leaderboard/get_leaderboard.php)</legend>
+    <button id="btnLeaderboard">Get Leaderboard</button>
+    <h4>Response</h4>
+    <pre id="outLeaderboard"></pre>
+  </fieldset>
+
+  <!-- 6. USER HISTORY (optional) -->
+  <fieldset>
+    <legend>6. User History (TeamService.getUserHistory → users/get_user_history.php)</legend>
+    <label>User ID</label>
+    <input id="h_user_id" type="number" placeholder="1" />
+    <button id="btnUserHistory">Get User History</button>
+    <h4>Response</h4>
+    <pre id="outUserHistory"></pre>
+  </fieldset>
+</div>
+
+<hr>
+
+<!-- ========================================================= -->
+<!-- ADMIN UI (hidden unless currentAdmin != null)             -->
+<!-- ========================================================= -->
+<div id="admin-ui" style="display:none;">
+  <h2>ADMIN AREA (requires admin login)</h2>
+
+  <!-- A. ADD PLAYER -->
+  <fieldset>
+    <legend>A. Add Player (AdminService.addPlayer → admin/admin_add_players.php)</legend>
+    <label>Name</label>
+    <input id="ap_name" placeholder="Player Name" />
+    <label>Team</label>
+    <input id="ap_team" placeholder="Team Name" />
+    <label>Position</label>
+    <input id="ap_position" placeholder="PG/SG/SF/PF/C" />
+    <label>Price</label>
+    <input id="ap_price" type="number" placeholder="10" />
+    <button id="btnAddPlayer">Add Player</button>
+    <h4>Response</h4>
+    <pre id="outAddPlayer"></pre>
+  </fieldset>
+
+  <!-- B. ADD COACH -->
+  <fieldset>
+    <legend>B. Add Coach (AdminService.addCoach → admin/admin_add_players.php)</legend>
+    <label>Name</label>
+    <input id="ac_name" placeholder="Coach Name" />
+    <label>Team</label>
+    <input id="ac_team" placeholder="Team Name" />
+    <label>Price</label>
+    <input id="ac_price" type="number" placeholder="5" />
+    <label>Bonus Points</label>
+    <input id="ac_bonus" type="number" placeholder="5" />
+    <button id="btnAddCoach">Add Coach</button>
+    <h4>Response</h4>
+    <pre id="outAddCoach"></pre>
+  </fieldset>
+
+  <!-- C. ADD WEEKLY STATS -->
+  <fieldset>
+    <legend>C. Add Weekly Stats (AdminService.addStats → admin/admin_add_stats.php)</legend>
+    <label>Player ID</label>
+    <input id="s_player_id" type="number" placeholder="1" />
+    <label>Week</label>
+    <input id="s_week" type="number" placeholder="1" /><br />
+    <label>Points</label>
+    <input id="s_points" type="number" placeholder="10" />
+    <label>Rebounds</label>
+    <input id="s_rebounds" type="number" placeholder="5" />
+    <label>Assists</label>
+    <input id="s_assists" type="number" placeholder="3" />
+    <label>Steals</label>
+    <input id="s_steals" type="number" placeholder="2" />
+    <label>Blocks</label>
+    <input id="s_blocks" type="number" placeholder="1" />
+    <label>Turnovers</label>
+    <input id="s_turnovers" type="number" placeholder="2" />
+    <label>Minutes</label>
+    <input id="s_minutes" type="number" placeholder="30" />
+    <br />
+    <button id="btnAddStats">Add / Update Stats</button>
+    <h4>Response</h4>
+    <pre id="outStats"></pre>
+  </fieldset>
+
+  <!-- D. ADMIN VIEW TEAMS PER WEEK -->
+  <fieldset>
+    <legend>D. Get All Teams for a Week (AdminService.getTeamsForWeek → admin/get_teams_per_week.php)</legend>
+    <label>Week Number</label>
+    <input id="aw_week" type="number" placeholder="1" />
+    <button id="btnAdminWeekTeams">Get Teams For Week</button>
+    <h4>Response</h4>
+    <pre id="outAdminWeekTeams"></pre>
+  </fieldset>
+</div>
+
+<script type="module">
+  // ===== Imports: use the flexible pattern that you said works =====
+  import * as AuthMod        from "./api/authService.js";
+  import * as PlayerMod      from "./api/playerService.js";
+  import * as CoachMod       from "./api/coachService.js";
+  import * as TeamMod        from "./api/teamService.js";
+  import * as LeaderboardMod from "./api/leaderboardService.js";
+  import * as AdminMod       from "./api/adminService.js";
+
+  // Try to pick the right export from each module
+  const AuthService        = AuthMod.AuthService        || AuthMod.default        || AuthMod;
+  const PlayerService      = PlayerMod.PlayerService    || PlayerMod.default      || PlayerMod;
+  const CoachService       = CoachMod.CoachService      || CoachMod.default       || CoachMod;
+  const TeamService        = TeamMod.TeamService        || TeamMod.default        || TeamMod;
+  const LeaderboardService = LeaderboardMod.LeaderboardService || LeaderboardMod.default || LeaderboardMod;
+  const AdminService       = AdminMod.AdminService      || AdminMod.default       || AdminMod;
+
+  // current logged-in user / admin (client-side only)
+  let currentUser  = null;
+  let currentAdmin = null;
+
+  function showJson(id, data) {
+    document.getElementById(id).textContent =
+      JSON.stringify(data, null, 2);
+  }
+
+  function refreshUI() {
+    const adminUI = document.getElementById("admin-ui");
+    adminUI.style.display = currentAdmin ? "block" : "none";
+  }
+
+  // ================== 0. USER REGISTER ==================
+  document.getElementById("btnRegister").addEventListener("click", async () => {
+    const username = document.getElementById("r_username").value.trim();
+    const email    = document.getElementById("r_email").value.trim();
+    const password = document.getElementById("r_password").value;
+
+    const res = await AuthService.register({ username, email, password });
+    showJson("outRegister", res);
+  });
+
+  // ================== 0b. USER LOGIN / LOGOUT ===========
+  document.getElementById("btnLogin").addEventListener("click", async () => {
+    const email    = document.getElementById("l_email").value.trim();
+    const password = document.getElementById("l_password").value;
+
+    const res = await AuthService.login({ email, password });
+    if (res.success && res.user) {
+      currentUser = res.user;
+    } else {
+      currentUser = null;
+    }
+    showJson("outLogin", res);
+  });
+
+  document.getElementById("btnLogout").addEventListener("click", () => {
+    if (AuthService.logout) {
+      AuthService.logout();
+    }
+    currentUser = null;
+    showJson("outLogin", { success: true, message: "User logged out (client-side)" });
+  });
+
+  // ================== 1. ADMIN LOGIN / LOGOUT ===========
+  document.getElementById("btnAdminLogin").addEventListener("click", async () => {
+    const username = document.getElementById("a_username").value.trim();
+    const password = document.getElementById("a_password").value;
+
+    const res = await AdminService.login({ username, password });
+    if (res.success && res.admin) {
+      currentAdmin = res.admin;
+    } else {
+      currentAdmin = null;
+    }
+    showJson("outAdminLogin", res);
+    refreshUI();
+  });
+
+  document.getElementById("btnAdminLogout").addEventListener("click", () => {
+    currentAdmin = null;
+    showJson("outAdminLogin", { success: true, message: "Admin logged out (client-side)" });
+    refreshUI();
+  });
+
+  // ================== 2. LOAD PLAYERS / COACHES =========
+  document.getElementById("btnLoadPlayers").addEventListener("click", async () => {
+    const res = await PlayerService.getAll();
+    showJson("outPlayers", res);
+  });
+
+  document.getElementById("btnLoadCoaches").addEventListener("click", async () => {
+    const res = await CoachService.getAll();
+    showJson("outCoaches", res);
+  });
+
+  // ================== 3. CREATE TEAM =====================
+  document.getElementById("btnCreateTeam").addEventListener("click", async () => {
+    const manualUserId = Number(document.getElementById("t_user_id").value);
+    const user_id = currentUser ? currentUser.id : manualUserId;
+
+    const week_number = Number(document.getElementById("t_week").value);
+    const team_name   = document.getElementById("t_team_name").value.trim();
+
+    const players = document
+      .getElementById("t_players")
+      .value.split(",")
+      .map(x => Number(x.trim()))
+      .filter(x => !Number.isNaN(x) && x > 0);
+
+    const coach_id   = Number(document.getElementById("t_coach_id").value);
+    const captain_id = Number(document.getElementById("t_captain_id").value);
+
+    if (!user_id || !week_number || !team_name || players.length === 0 || !coach_id || !captain_id) {
+      showJson("outCreateTeam", {
+        success: false,
+        message: "Fill all fields. Players must be like 1,2,3,4,5.",
+        debug: { user_id, week_number, team_name, players, coach_id, captain_id }
+      });
+      return;
+    }
+
+    const res = await TeamService.createTeam({
+      user_id,
+      week_number,
+      team_name,
+      players,
+      coach_id,
+      captain_id
+    });
+
+    showJson("outCreateTeam", res);
+  });
+
+  // ================== 4. GET USER TEAM ===================
+  document.getElementById("btnGetTeam").addEventListener("click", async () => {
+    const user_id     = Number(document.getElementById("gt_user_id").value);
+    const week_number = Number(document.getElementById("gt_week").value);
+
+    const res = await TeamService.getTeam({ user_id, week_number });
+    showJson("outGetTeamJson", res);
+
+    if (res.success && res.team) {
+      const t = res.team;
+      const lines = [];
+
+      lines.push(`Team: ${t.team_name} (Week ${t.week_number})`);
+      lines.push(`Total Cost: ${t.total_cost || 0}`);
+      lines.push(`Budget Remaining: ${t.budget_remaining}`);
+      lines.push("");
+      lines.push("Players:");
+
+      if (t.players && t.players.length) {
+        t.players.forEach(p => {
+          const cap = p.is_captain ? " (C)" : "";
+          lines.push(`- #${p.id} ${p.name} [${p.team}] ${p.position} - ${p.price}${cap}`);
+        });
+      } else {
+        lines.push("- None");
+      }
+
+      lines.push("");
+      lines.push("Coach:");
+      if (t.coach) {
+        lines.push(`- #${t.coach.id} ${t.coach.name} [${t.coach.team}] - ${t.coach.price}`);
+      } else {
+        lines.push("- None");
+      }
+
+      document.getElementById("outGetTeamPretty").textContent = lines.join("\n");
+    } else {
+      document.getElementById("outGetTeamPretty").textContent = "No team / error.";
+    }
+  });
+
+  // ================== 5. LEADERBOARD =====================
+  document.getElementById("btnLeaderboard").addEventListener("click", async () => {
+    const res = await LeaderboardService.getLeaderboard();
+    showJson("outLeaderboard", res);
+  });
+
+  // ================== 6. USER HISTORY ====================
+  document.getElementById("btnUserHistory").addEventListener("click", async () => {
+    const user_id = Number(document.getElementById("h_user_id").value);
+    const res = await TeamService.getUserHistory(user_id);
+    showJson("outUserHistory", res);
+  });
+
+  // ================== ADMIN: ADD PLAYER ==================
+  document.getElementById("btnAddPlayer").addEventListener("click", async () => {
+    if (!currentAdmin) {
+      showJson("outAddPlayer", { success: false, message: "You must be logged in as admin to add players." });
+      return;
+    }
+
+    const name     = document.getElementById("ap_name").value.trim();
+    const team     = document.getElementById("ap_team").value.trim();
+    const position = document.getElementById("ap_position").value.trim().toUpperCase();
+    const price    = Number(document.getElementById("ap_price").value);
+
+    const res = await AdminService.addPlayer({ name, team, position, price });
+    showJson("outAddPlayer", res);
+  });
+
+  // ================== ADMIN: ADD COACH ===================
+  document.getElementById("btnAddCoach").addEventListener("click", async () => {
+    if (!currentAdmin) {
+      showJson("outAddCoach", { success: false, message: "You must be logged in as admin to add coaches." });
+      return;
+    }
+
+    const name         = document.getElementById("ac_name").value.trim();
+    const team         = document.getElementById("ac_team").value.trim();
+    const price        = Number(document.getElementById("ac_price").value);
+    const bonus_points = Number(document.getElementById("ac_bonus").value || 5);
+
+    const res = await AdminService.addCoach({ name, team, price, bonus_points });
+    showJson("outAddCoach", res);
+  });
+
+  // ================== ADMIN: ADD WEEKLY STATS ===========
+  document.getElementById("btnAddStats").addEventListener("click", async () => {
+    if (!currentAdmin) {
+      showJson("outStats", { success: false, message: "You must be logged in as admin to add stats." });
+      return;
+    }
+
+    const week_number = Number(document.getElementById("s_week").value);
+    const player_id   = Number(document.getElementById("s_player_id").value);
+
+    const payload = {
+      week_number,
+      stats: [
+        {
+          player_id,
+          points:    Number(document.getElementById("s_points").value || 0),
+          rebounds:  Number(document.getElementById("s_rebounds").value || 0),
+          assists:   Number(document.getElementById("s_assists").value || 0),
+          steals:    Number(document.getElementById("s_steals").value || 0),
+          blocks:    Number(document.getElementById("s_blocks").value || 0),
+          turnovers: Number(document.getElementById("s_turnovers").value || 0),
+          minutes:   Number(document.getElementById("s_minutes").value || 0)
+        }
+      ]
+    };
+
+    const res = await AdminService.addStats(payload);
+    showJson("outStats", res);
+  });
+
+  // ================== ADMIN: TEAMS PER WEEK =============
+  document.getElementById("btnAdminWeekTeams").addEventListener("click", async () => {
+    if (!currentAdmin) {
+      showJson("outAdminWeekTeams", { success: false, message: "You must be logged in as admin to view this." });
+      return;
+    }
+
+    const week_number = Number(document.getElementById("aw_week").value);
+    const res = await AdminService.getTeamsForWeek(week_number);
+    showJson("outAdminWeekTeams", res);
+  });
+
+  // Initial state for admin UI
+  refreshUI();
+</script>
+</body>
+</html>
