@@ -1,10 +1,26 @@
-// scr/core/leaderboardServices.js
+// src/core/leaderboardServices.js
 
+/**
+ * Given an array of users with totalPoints, sort them DESC and assign ranks
+ * (ties share the same rank, like real sports standings).
+ *
+ * rows: [
+ *   { userId, username, totalPoints },
+ *   ...
+ * ]
+ */
 async function getLeaderboardWithRanks(limit, dataSource) {
   let rows = await dataSource.getLeaderboard(limit);
 
-  // IMPORTANT: sort by totalPoints DESC
-  rows = rows.sort((a, b) => b.totalPoints - a.totalPoints);
+  // Force numeric
+  rows = (rows || []).map(r => ({
+    userId: r.userId,
+    username: r.username,
+    totalPoints: Number(r.totalPoints || 0)
+  }));
+
+  // Sort DESC by points
+  rows.sort((a, b) => b.totalPoints - a.totalPoints);
 
   let prevPoints = null;
   let rank = 0;
