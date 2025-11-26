@@ -12,26 +12,7 @@ if (!$user_id || !$week_number) {
 }
 
 // -------------------------------------------------------
-// 1) CHECK IF POINTS FOR THIS WEEK WERE ALREADY CALCULATED
-// -------------------------------------------------------
-$check_points = $conn->prepare("
-    SELECT id FROM user_points 
-    WHERE user_id = ? AND week_number = ?
-");
-$check_points->bind_param("ii", $user_id, $week_number);
-$check_points->execute();
-$points_exist = $check_points->get_result()->num_rows;
-
-if ($points_exist > 0) {
-    echo json_encode([
-        "success" => false,
-        "message" => "You cannot delete your team because points were already calculated for this week."
-    ]);
-    exit;
-}
-
-// -------------------------------------------------------
-// 2) GET THE TEAM
+// 1) GET THE TEAM FOR THIS USER + WEEK
 // -------------------------------------------------------
 $team_sql = "
     SELECT id 
@@ -52,46 +33,46 @@ $team = $res->fetch_assoc();
 $user_team_id = $team["id"];
 
 // -------------------------------------------------------
-// 3) CALCULATE COST TO REFUND
+// 2) CALCULATE VALUE TO REFUND (CURRENT PRICES)
 // -------------------------------------------------------
-$members_sql = "
-    SELECT 
-        p.price AS player_price,
-        c.price AS coach_price
+// -------------------------------------------------------
+// 3) CALCULATE COST TO REFUND (CURRENT TEAM WORTH)
+//     must match the logic in get_team.php
+// -------------------------------------------------------
+$cost_sql = "
+    SELECT
+        COALESCE(SUM(CASE WHEN utm.role = 'PLAYER' THEN p.price END), 0) AS players_cost,
+        COALESCE(SUM(CASE WHEN utm.role = 'COACH'  THEN c.price END), 0) AS coach_cost
     FROM user_team_members utm
     LEFT JOIN players p ON utm.player_id = p.id
     LEFT JOIN coaches c ON utm.coach_id = c.id
     WHERE utm.user_team_id = ?
 ";
 
-$stmt = $conn->prepare($members_sql);
+$stmt = $conn->prepare($cost_sql);
 $stmt->bind_param("i", $user_team_id);
 $stmt->execute();
-$members_res = $stmt->get_result();
+$cost_res = $stmt->get_result()->fetch_assoc();
 
-$refund = 0;
+$refund = (int)$cost_res["players_cost"] + (int)$cost_res["coach_cost"];
 
-while ($m = $members_res->fetch_assoc()) {
-    if ($m["player_price"]) $refund += (int)$m["player_price"];
-    if ($m["coach_price"]) $refund += (int)$m["coach_price"];
-}
 
 // -------------------------------------------------------
-// 4) DELETE MEMBERS
+// 3) DELETE MEMBERS
 // -------------------------------------------------------
 $delete_members = $conn->prepare("DELETE FROM user_team_members WHERE user_team_id = ?");
 $delete_members->bind_param("i", $user_team_id);
 $delete_members->execute();
 
 // -------------------------------------------------------
-// 5) DELETE TEAM
+// 4) DELETE TEAM
 // -------------------------------------------------------
 $delete_team = $conn->prepare("DELETE FROM user_team WHERE id = ?");
 $delete_team->bind_param("i", $user_team_id);
 $delete_team->execute();
 
 // -------------------------------------------------------
-// 6) REFUND USER BUDGET
+// 5) REFUND USER BUDGET (SELL TEAM)
 // -------------------------------------------------------
 $update_budget = $conn->prepare("
     UPDATE users 
@@ -102,7 +83,7 @@ $update_budget->bind_param("ii", $refund, $user_id);
 $update_budget->execute();
 
 // -------------------------------------------------------
-// 7) GET NEW BUDGET
+// 6) GET NEW BUDGET
 // -------------------------------------------------------
 $get_budget = $conn->prepare("SELECT budget_remaining FROM users WHERE id = ?");
 $get_budget->bind_param("i", $user_id);
@@ -110,11 +91,11 @@ $get_budget->execute();
 $new_budget = $get_budget->get_result()->fetch_assoc()["budget_remaining"];
 
 // -------------------------------------------------------
-// 8) SEND RESPONSE
+// 7) RESPONSE
 // -------------------------------------------------------
 echo json_encode([
     "success" => true,
-    "message" => "Team deleted successfully. Budget refunded.",
+    "message" => "Team sold successfully. Value refunded to your budget.",
     "refund"  => $refund,
     "budget_remaining" => $new_budget
 ]);

@@ -41,7 +41,7 @@ function el(id) {
   return document.getElementById(id);
 }
 
-// ---- BUDGET DISPLAY ----
+// ---- BUDGET + TEAM WORTH DISPLAY ----
 function setBudgetDisplay(budget) {
   const node = el("budget-display");
   if (!node) return;
@@ -52,6 +52,35 @@ function setBudgetDisplay(budget) {
   } else {
     node.textContent = "100.0";
   }
+}
+
+function setTeamWorth(totalCost) {
+  const node = el("team-worth");
+  if (!node) return;
+
+  const n = Number(totalCost);
+  if (Number.isFinite(n)) {
+    node.textContent = n.toFixed(1);
+  } else {
+    node.textContent = "0.0";
+  }
+}
+
+// Recompute worth from the current `selected` object
+function computeSelectedTeamWorth() {
+  let total = 0;
+
+  ["PG", "SG", "SF", "PF", "C"].forEach((pos) => {
+    if (selected[pos] && selected[pos].price != null) {
+      total += Number(selected[pos].price);
+    }
+  });
+
+  if (selected.COACH && selected.COACH.price != null) {
+    total += Number(selected.COACH.price);
+  }
+
+  setTeamWorth(total);
 }
 
 // Reset all selected positions in JS + UI
@@ -80,6 +109,8 @@ function resetSelectedUI() {
     label.classList.remove("cursor-pointer", "underline");
     label.onclick = null;
   });
+
+  setTeamWorth(0);
 }
 
 // ---- INITIALIZATION ----
@@ -90,15 +121,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // baseline budget from user, if available
-  if (currentUser.budget_remaining != null) {
-    setBudgetDisplay(currentUser.budget_remaining);
-  } else {
-    setBudgetDisplay(100);
-  }
-
   attachButtons();
-  await initTeamForCurrentWeek();
+  await initTeamForCurrentWeek();   // this will set budget + team worth from DB
 });
 
 // Attach events to position buttons + save/delete
@@ -125,50 +149,64 @@ function attachButtons() {
   }
 }
 
-// Load (if exists) the team of this user for CURRENT_WEEK
-async function initTeamForCurrentWeek() {
-  try {
-    // 1) Check if team exists
-    const checkRes = await TeamService.checkTeamExists(
-      currentUser.id,
-      CURRENT_WEEK
-    );
+// ---- LOAD TEAM / BUDGET FROM SERVER ----
 
-    if (!checkRes || !checkRes.success) {
-      console.warn("checkTeamExists failed:", checkRes);
-      resetSelectedUI();
-      if (saveBtn) saveBtn.textContent = "Save My Team";
+// Fallback: get budget from user history (DB) if there is no team yet
+async function syncBudgetFromHistory() {
+  try {
+    const hist = await TeamService.getUserHistory(currentUser.id);
+    if (hist && hist.success && hist.user && hist.user.budget_remaining != null) {
+      setBudgetDisplay(hist.user.budget_remaining);
       return;
     }
+  } catch (err) {
+    console.error("syncBudgetFromHistory error:", err);
+  }
 
-    if (!checkRes.exists) {
-      // no team yet → normal create
+  // fallback to cached user or default
+  if (currentUser && currentUser.budget_remaining != null) {
+    setBudgetDisplay(currentUser.budget_remaining);
+  } else {
+    setBudgetDisplay(100);
+  }
+}
+
+// Always try to fetch team directly from DB
+async function initTeamForCurrentWeek() {
+  resetSelectedUI();
+
+  try {
+    const teamRes = await TeamService.getTeam(currentUser.id, CURRENT_WEEK);
+
+    if (teamRes && teamRes.success && teamRes.team) {
+      const team = teamRes.team;
+
+      // Mark that a team exists
+      existingTeamId = team.team_id || team.id || null;
+      if (saveBtn) saveBtn.textContent = "Update My Team";
+
+      // Fill players/coach in UI
+      hydrateSelectedFromTeam(team);
+
+      // Budget from DB
+      if (team.budget_remaining != null) {
+        setBudgetDisplay(team.budget_remaining);
+      } else {
+        await syncBudgetFromHistory();
+      }
+    } else {
+      // No team for this week
       existingTeamId = null;
       resetSelectedUI();
-      if (saveBtn) saveBtn.textContent = "Save My Team";
-      return;
-    }
-
-    // Team exists
-    existingTeamId = checkRes.team_id;
-    if (saveBtn) saveBtn.textContent = "Update My Team";
-
-    // 2) Fetch full team details
-    const teamRes = await TeamService.getTeam(currentUser.id, CURRENT_WEEK);
-    if (!teamRes || !teamRes.success || !teamRes.team) {
-      console.warn("getTeam returned no team:", teamRes);
-      resetSelectedUI();
-      return;
-    }
-
-    const team = teamRes.team;
-    hydrateSelectedFromTeam(team);
-
-    if (team.budget_remaining != null) {
-      setBudgetDisplay(team.budget_remaining);
+      if (saveBtn) saveBtn.textContent = "Buy My Team";
+      await syncBudgetFromHistory();
     }
   } catch (err) {
     console.error("initTeamForCurrentWeek error:", err);
+    existingTeamId = null;
+    resetSelectedUI();
+    if (saveBtn) saveBtn.textContent = "Buy My Team";
+    await syncBudgetFromHistory();
   }
 }
 
@@ -208,6 +246,9 @@ function hydrateSelectedFromTeam(team) {
       label.textContent = team.coach.name || "Coach";
     }
   }
+
+  // Compute worth from selected players + coach
+  computeSelectedTeamWorth();
 }
 
 // ---- MODAL LOGIC ----
@@ -276,6 +317,9 @@ function selectItem(position, item) {
       alert(`${item.name} set as Captain`);
     };
   }
+
+  // Update worth live while user is picking
+  computeSelectedTeamWorth();
 }
 
 // ---- SAVE (CREATE / OVERWRITE) TEAM ----
@@ -339,34 +383,27 @@ async function saveTeam() {
       return;
     }
 
-    if (res.budget_remaining != null) {
-      setBudgetDisplay(res.budget_remaining);
-    }
-
-    existingTeamId = res.team_id || existingTeamId;
+    // After save, always re-sync from server to guarantee budget + team in UI
+    await initTeamForCurrentWeek();
 
     alert("Team saved successfully!");
-    // Optional: stay on page so user can see updated court,
-    // or redirect to stats if you prefer:
-    // window.location.href = "my-stats.html";
-    await initTeamForCurrentWeek(); // re-hydrate from DB to be 100% in sync
   } catch (err) {
     console.error("saveTeam error:", err);
     alert("Unexpected error while saving team.");
   }
 }
 
-// ---- DELETE TEAM (then user can rebuild) ----
+// ---- DELETE TEAM (SELL TEAM) ----
 async function handleDeleteTeam() {
   if (!currentUser) return;
 
   if (!existingTeamId) {
-    alert("You don't have a team for this week to delete.");
+    alert("You don't have a team for this week to sell.");
     return;
   }
 
   const ok = confirm(
-    "Are you sure you want to delete your team for this week? Your budget will be refunded."
+    "Are you sure you want to sell your team for this week? Your budget will be refunded."
   );
   if (!ok) return;
 
@@ -377,20 +414,23 @@ async function handleDeleteTeam() {
     });
 
     if (!res || !res.success) {
-      alert(res?.message || "Failed to delete team.");
+      alert(res?.message || "Failed to sell team.");
       return;
     }
 
     existingTeamId = null;
     resetSelectedUI();
 
+    // Budget from server response (delete_team.php returns budget_remaining)
     if (res.budget_remaining != null) {
       setBudgetDisplay(res.budget_remaining);
+    } else {
+      await syncBudgetFromHistory();
     }
 
-    if (saveBtn) saveBtn.textContent = "Save My Team";
+    if (saveBtn) saveBtn.textContent = "Buy My Team";
 
-    alert("Team deleted. You can build a new one now.");
+    alert("Team sold. You can build a new one now.");
   } catch (err) {
     console.error("Delete team error:", err);
     alert("Unexpected error while deleting team.");
