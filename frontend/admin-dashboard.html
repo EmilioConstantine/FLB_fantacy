@@ -1,0 +1,105 @@
+<!-- frontend/admin/admin-dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Dashboard | LBL Fantasy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body class="bg-gray-100">
+    <header
+      class="bg-white shadow-sm px-4 py-3 flex items-center gap-3 sticky top-0 z-40"
+    >
+      <div
+        class="w-10 h-10 bg-flb-red rounded-lg flex items-center justify-center shadow text-white font-bold text-sm"
+      >
+        FLB
+      </div>
+      <h1 class="font-black tracking-tight text-flb-red text-lg">
+        ADMIN DASHBOARD
+      </h1>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-6 pb-20 space-y-6">
+      <!-- WEEK ACTIONS -->
+      <section class="bg-white rounded-2xl shadow p-4">
+        <h2 class="font-bold mb-3">Weekly Scoring</h2>
+        <div class="flex flex-wrap items-center gap-3 text-sm">
+          <label class="font-semibold">Week</label>
+          <input
+            id="admin-week"
+            type="number"
+            class="border rounded px-2 py-1 w-24"
+            value="1"
+          />
+          <button
+            id="btn-run-scoring"
+            class="btn-primary text-xs px-3 py-2"
+          >
+            Run admin_run_weekly_scoring.php
+          </button>
+          <button
+            id="btn-recalc"
+            class="btn-secondary text-xs px-3 py-2"
+          >
+            Recalculate from update_team.php
+          </button>
+          <button
+            id="btn-load-teams"
+            class="ml-auto text-xs px-3 py-2 rounded bg-gray-100"
+          >
+            Load teams for this week
+          </button>
+        </div>
+        <pre
+          id="admin-log"
+          class="mt-3 text-xs bg-gray-50 border rounded p-2 max-h-40 overflow-y-auto"
+        ></pre>
+      </section>
+
+      <!-- TEAMS TABLE -->
+      <section class="bg-white rounded-2xl shadow p-4">
+        <h2 class="font-bold mb-3">Teams for Week</h2>
+        <div
+          id="teams-table"
+          class="text-xs max-h-80 overflow-y-auto border rounded"
+        >
+          <!-- filled by JS -->
+        </div>
+      </section>
+
+      <!-- PRICE MANAGEMENT -->
+      <section class="bg-white rounded-2xl shadow p-4">
+        <h2 class="font-bold mb-3">Player Prices</h2>
+        <div class="flex flex-wrap items-center gap-3 text-sm">
+          <label class="font-semibold">Player ID</label>
+          <input
+            id="price-player-id"
+            type="number"
+            class="border rounded px-2 py-1 w-24"
+          />
+          <label class="font-semibold">New Price</label>
+          <input
+            id="price-new"
+            type="number"
+            class="border rounded px-2 py-1 w-24"
+          />
+          <button
+            id="btn-price-single"
+            class="btn-primary text-xs px-3 py-2"
+          >
+            Update Single
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="js/admin-dashboard.js"></script>
+  </body>
+</html>

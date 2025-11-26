@@ -1,82 +1,160 @@
+<!-- frontend/leaderboard.html -->
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
     <title>Leaderboard | LBL Fantasy</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
-</head>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
 
-<body>
-    <header class="bg-white shadow-sm sticky top-0 z-50 px-4 py-3 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-flb-red rounded-lg flex items-center justify-center shadow text-white font-bold text-sm">FLB</div>
-            <h1 class="text-lg font-black tracking-tighter text-flb-red">LEADERBOARD</h1>
-        </div>
+  <body class="bg-gray-100">
+    <!-- HEADER -->
+    <header
+      class="bg-white shadow-sm px-4 py-3 flex items-center gap-3 sticky top-0 z-40"
+    >
+      <div
+        class="w-10 h-10 bg-flb-red rounded-lg flex items-center justify-center shadow text-white font-bold text-sm"
+      >
+        FLB
+      </div>
+      <h1 class="font-black tracking-tight text-flb-red text-lg">
+        LEADERBOARD
+      </h1>
     </header>
 
-    <div class="p-4 max-w-md mx-auto">
-        <!-- Podium -->
-        <div class="flex items-end justify-center gap-4 mb-8 mt-4">
-            <div class="flex flex-col items-center">
-                <div class="w-12 h-12 rounded-full bg-gray-200 border-2 border-gray-300 mb-2 flex items-center justify-center font-bold text-gray-500">C</div>
-                <div class="h-20 w-16 bg-gray-300 rounded-t-lg flex items-center justify-center font-bold text-white">2</div>
-                <span class="text-xs font-bold mt-1">Charbel</span>
-                <span class="text-xs text-gray-500">1280</span>
-            </div>
-            <div class="flex flex-col items-center z-10">
-                <div class="text-yellow-500 text-xl mb-1"><i class="fas fa-crown"></i></div>
-                <div class="w-16 h-16 rounded-full bg-yellow-100 border-2 border-yellow-400 mb-2 flex items-center justify-center font-bold text-yellow-600">R</div>
-                <div class="h-28 w-20 bg-yellow-400 rounded-t-lg flex items-center justify-center font-bold text-white text-xl shadow-lg">1</div>
-                <span class="text-xs font-bold mt-1">Rami K.</span>
-                <span class="text-xs text-gray-500">1350</span>
-            </div>
-            <div class="flex flex-col items-center">
-                <div class="w-12 h-12 rounded-full bg-orange-100 border-2 border-orange-300 mb-2 flex items-center justify-center font-bold text-orange-500">H</div>
-                <div class="h-16 w-16 bg-orange-300 rounded-t-lg flex items-center justify-center font-bold text-white">3</div>
-                <span class="text-xs font-bold mt-1">Hadi</span>
-                <span class="text-xs text-gray-500">1240</span>
-            </div>
+    <main class="max-w-4xl mx-auto px-4 py-6 pb-24">
+      <!-- PODIUM -->
+      <section class="flex items-end justify-center gap-4 mb-10 mt-4">
+        <!-- 2nd place -->
+        <div class="flex flex-col items-center" id="podium-2">
+          <div
+            id="podium-2-initial"
+            class="w-12 h-12 rounded-full bg-gray-200 border-2 border-gray-300 mb-2 flex items-center justify-center font-bold text-gray-500"
+          >
+            C
+          </div>
+          <div
+            class="h-20 w-16 bg-gray-300 rounded-t-lg flex items-center justify-center font-bold text-white"
+          >
+            2
+          </div>
+          <span
+            id="podium-2-name"
+            class="text-xs font-bold mt-1 whitespace-nowrap"
+            >Charbel</span
+          >
+          <span
+            id="podium-2-points"
+            class="text-xs text-gray-500 whitespace-nowrap"
+            >1280</span
+          >
         </div>
 
-        <!-- Ranking List -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-4 border-b flex justify-between items-center bg-red-50">
-                <div class="flex items-center gap-3">
-                    <span class="font-bold text-flb-red">#421</span>
-                    <span class="font-bold text-gray-800">You</span>
-                </div>
-                <span class="font-bold text-gray-800">980 pts</span>
-            </div>
-            <div class="divide-y divide-gray-100">
-                <div class="p-4 flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <span class="text-gray-400 font-mono w-6">4</span>
-                        <span class="font-medium">Fadi El Khatib Fan</span>
-                    </div>
-                    <span class="text-gray-600 font-bold">1210</span>
-                </div>
-                <div class="p-4 flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <span class="text-gray-400 font-mono w-6">5</span>
-                        <span class="font-medium">Cedars 101</span>
-                    </div>
-                    <span class="text-gray-600 font-bold">1190</span>
-                </div>
-            </div>
+        <!-- 1st place -->
+        <div class="flex flex-col items-center z-10" id="podium-1">
+          <div class="text-yellow-500 text-xl mb-1">
+            <i class="fas fa-crown"></i>
+          </div>
+          <div
+            id="podium-1-initial"
+            class="w-16 h-16 rounded-full bg-yellow-100 border-2 border-yellow-400 mb-2 flex items-center justify-center font-bold text-yellow-600"
+          >
+            R
+          </div>
+          <div
+            class="h-28 w-20 bg-yellow-400 rounded-t-lg flex items-center justify-center font-bold text-white text-xl shadow-lg"
+          >
+            1
+          </div>
+          <span
+            id="podium-1-name"
+            class="text-xs font-bold mt-1 whitespace-nowrap"
+            >Rami K.</span
+          >
+          <span
+            id="podium-1-points"
+            class="text-xs text-gray-500 whitespace-nowrap"
+            >1350</span
+          >
         </div>
-    </div>
 
-    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-between px-6 py-3 z-50">
-        <a href="team-builder.html" class="nav-item"><i class="fas fa-tshirt"></i><span>Team</span></a>
-        <a href="leaderboard.html" class="nav-item active"><i class="fas fa-trophy"></i><span>Rank</span></a>
+        <!-- 3rd place -->
+        <div class="flex flex-col items-center" id="podium-3">
+          <div
+            id="podium-3-initial"
+            class="w-12 h-12 rounded-full bg-orange-100 border-2 border-orange-300 mb-2 flex items-center justify-center font-bold text-orange-500"
+          >
+            H
+          </div>
+          <div
+            class="h-16 w-16 bg-orange-300 rounded-t-lg flex items-center justify-center font-bold text-white"
+          >
+            3
+          </div>
+          <span
+            id="podium-3-name"
+            class="text-xs font-bold mt-1 whitespace-nowrap"
+            >Hadi</span
+          >
+          <span
+            id="podium-3-points"
+            class="text-xs text-gray-500 whitespace-nowrap"
+            >1240</span
+          >
+        </div>
+      </section>
 
-        <a href="my-team.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
-        <a href="rules.html" class="nav-item"><i class="fas fa-book"></i><span>Rules</span></a>
+      <!-- TABLE WITH CURRENT USER ROW -->
+      <section
+        class="bg-white rounded-2xl shadow-md overflow-hidden max-w-3xl mx-auto"
+      >
+        <div
+          id="lb-current-row"
+          class="flex justify-between items-center px-5 py-3 text-sm bg-red-50 border-b border-gray-100"
+        >
+          <div class="flex items-center gap-3">
+            <span
+              id="lb-current-rank"
+              class="font-bold text-red-500 text-xs min-w-[3rem]"
+              >#–</span
+            >
+            <span id="lb-current-name" class="font-semibold">You</span>
+          </div>
+          <span
+            id="lb-current-points"
+            class="font-mono text-sm text-gray-700"
+          ></span>
+        </div>
+
+        <div id="lb-list" class="divide-y divide-gray-100 text-sm">
+          <!-- filled by JS -->
+        </div>
+      </section>
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav
+      class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-between px-6 py-3 z-40"
+    >
+      <a href="team-builder.html" class="nav-item">
+        <i class="fas fa-tshirt"></i><span>Team</span>
+      </a>
+      <a href="leaderboard.html" class="nav-item active">
+        <i class="fas fa-trophy"></i><span>Rank</span>
+      </a>
+      <a href="my-stats.html" class="nav-item">
+        <i class="fas fa-chart-bar"></i><span>Stats</span>
+      </a>
+      <a href="rules.html" class="nav-item">
+        <i class="fas fa-book"></i><span>Rules</span>
+      </a>
     </nav>
-</body>
 
+    <script type="module" src="js/leaderboard.js"></script>
+  </body>
 </html>

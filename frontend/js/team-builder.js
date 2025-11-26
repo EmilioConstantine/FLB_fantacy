@@ -39,6 +39,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   loadPlayerButtons();
 });
+function setBudgetDisplay(budget) {
+  const el = document.getElementById("budget-display");
+  if (!el) return;
+
+  const n = Number(budget);
+  if (Number.isFinite(n)) {
+    // display like 100.0M
+    el.textContent = n.toFixed(1);
+  } else {
+    // fallback if something goes wrong
+    el.textContent = "100.0";
+  }
+}
+
 
 // Attach events to position buttons
 function loadPlayerButtons() {
@@ -150,7 +164,7 @@ async function saveTeam() {
 
   if (res.success) {
     alert("Team Saved Successfully!");
-    window.location.href = "my-team.html";
+    window.location.href = "my-stats.html";
   } else {
     alert(res.message || "Team creation failed.");
   }

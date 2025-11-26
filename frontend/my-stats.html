@@ -1,0 +1,100 @@
+<!-- frontend/my-stats.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>My Stats | LBL Fantasy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body class="bg-gray-100">
+    <!-- HEADER -->
+    <header
+      class="bg-white shadow-sm px-4 py-3 flex items-center gap-3 sticky top-0 z-40"
+    >
+      <div
+        class="w-10 h-10 bg-flb-red rounded-lg flex items-center justify-center shadow text-white font-bold text-sm">
+        FLB
+      </div>
+      <h1 class="font-black tracking-tight text-flb-red text-lg">MY STATS</h1>
+      <div class="flex gap-4 text-gray-400">
+      <a href="login.html"><i class="fas fa-user-circle text-lg"></i></a>
+    </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 pb-24">
+      <!-- GAMEWEEK CARD -->
+      <!-- Gameweek summary card -->
+<section class="max-w-3xl mx-auto mt-6">
+  <div class="bg-flb-red rounded-3xl text-white px-6 py-6 shadow-lg">
+    <h2 class="text-xl font-bold mb-1">
+      Gameweek <span id="stat-gameweek">-</span>
+    </h2>
+    <p class="text-xs text-red-100 mb-4">Points collected</p>
+
+    <div class="flex gap-10 mt-2 text-center">
+      <div>
+        <div class="text-2xl font-extrabold" id="stat-week-points">0</div>
+        <div class="text-[11px] uppercase tracking-wide text-red-100">
+          Points
+        </div>
+      </div>
+      <div>
+        <div class="text-2xl font-extrabold" id="stat-total-points">0</div>
+        <div class="text-[11px] uppercase tracking-wide text-red-100">
+          Total
+        </div>
+      </div>
+      <div>
+        <div class="text-2xl font-extrabold" id="stat-avg-points">0</div>
+        <div class="text-[11px] uppercase tracking-wide text-red-100">
+          Avg / GW
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+      <!-- PLAYER PERFORMANCE LIST -->
+      <section class="max-w-3xl mx-auto mt-8 mb-24">
+  <h3 class="text-lg font-bold mb-3">Player Performance</h3>
+
+  <!-- JS will fill this -->
+  <div id="player-performance" class="space-y-3">
+    <!-- placeholder text is fine, JS will overwrite it -->
+    <p class="text-sm text-gray-500">
+      No player stats for this gameweek yet.
+    </p>
+  </div>
+</section>
+
+
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav
+      class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-between px-6 py-3 z-40"
+    >
+      <a href="team-builder.html" class="nav-item">
+        <i class="fas fa-tshirt"></i><span>Team</span>
+      </a>
+      <a href="leaderboard.html" class="nav-item">
+        <i class="fas fa-trophy"></i><span>Rank</span>
+      </a>
+      <a href="my-stats.html" class="nav-item active">
+        <i class="fas fa-chart-bar"></i><span>Stats</span>
+      </a>
+      <a href="rules.html" class="nav-item">
+        <i class="fas fa-book"></i><span>Rules</span>
+      </a>
+    </nav>
+
+    <script type="module" src="js/my-stats.js"></script>
+  </body>
+</html>

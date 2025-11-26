@@ -51,6 +51,31 @@ export const PlayerService = {
    */
   getAll(filters = {}) {
     return this.getAllPlayers(filters);
+  },
+
+  /**
+   * NEW:
+   * Get stats for ALL players in a user's team for a given week.
+   * Wraps backend/api/players/get_user_team_week_stats.php
+   *
+   * Returns something like:
+   * {
+   *   success: true,
+   *   user_id: 8,
+   *   week_number: 1,
+   *   team: { id: 3, name: "jimmy Team" },
+   *   players: [
+   *     { player_id, name, team, position, is_captain, fantasy_points, ... },
+   *     ...
+   *   ]
+   * }
+   */
+  getUserTeamWeekStats(userId, weekNumber) {
+    return api.get(
+      `players/get_user_team_week_stats.php?user_id=${encodeURIComponent(
+        userId
+      )}&week_number=${encodeURIComponent(weekNumber)}`
+    );
   }
 };
 
