@@ -140,11 +140,26 @@
         Tap a circle to pick a player. Tap their name again to set as <span class="font-bold">Captain</span>.
       </p>
     </section>
+    
 
     <!-- SAVE TEAM BUTTON -->
-    <button id="submitTeam" class="btn-primary w-full text-sm py-3 mt-2">
-      Save My Team
-    </button>
+   <div class="grid grid-cols-1 gap-3 mt-4 max-w-md mx-auto">
+  <button
+    id="submitTeam"
+    class="btn-primary text-sm py-3 w-full"
+  >
+    Save My Team
+  </button>
+
+  <!-- new delete button (optional) -->
+  <button
+    id="deleteTeamBtn"
+    class="btn-secondary text-sm py-3 w-full"
+  >
+    Delete My Team
+  </button>
+</div>
+
   </main>
 
   <!-- MODAL FOR PLAYER / COACH SELECTION -->
