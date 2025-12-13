@@ -2,6 +2,23 @@
 import api from "./apiClient.js";
 
 export const AdminService = {
+    /**
+   * Check current admin session
+   * Calls: admin/me.php
+   * Returns: { success: true, admin: {...} } or { success:false }
+   */
+  me() {
+    return api.get("admin/me.php");
+  },
+
+  /**
+   * Logout admin (destroy session)
+   * Calls: admin/logout.php
+   */
+  logout() {
+    return api.post("admin/logout.php", {});
+  },
+
   /**
    * Admin login
    * Calls: admin/login.php

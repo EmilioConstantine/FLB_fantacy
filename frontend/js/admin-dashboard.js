@@ -1,6 +1,13 @@
 // frontend/admin/js/admin-dashboard.js
 import * as LbMod from "../../backend/scr/api/leaderboardService.js";
 import * as ScoreMod from "../../backend/scr/api/scoringService.js";
+function mustHaveAdminSession() {
+  // If admin.js redirected properly, this won't run when not logged in.
+  // But if someone opens the page directly and your backend blocks, you'll see it in logs.
+  log("Dashboard ready (admin session required).");
+}
+document.addEventListener("DOMContentLoaded", mustHaveAdminSession);
+
 
 const LeaderboardService =
   LbMod.LeaderboardService || LbMod.default || LbMod;
