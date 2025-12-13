@@ -20,12 +20,8 @@
         FLB
       </div>
       <div>
-        <h1 class="text-lg font-black tracking-tighter text-flb-red leading-none">
-          LBL FANTASY
-        </h1>
-        <span class="text-[10px] font-bold text-gray-400 tracking-widest">
-          OFFICIAL APP
-        </span>
+        <h1 class="text-lg font-black tracking-tighter text-flb-red leading-none">LBL FANTASY</h1>
+        <span class="text-[10px] font-bold text-gray-400 tracking-widest">OFFICIAL APP</span>
       </div>
     </div>
     <div class="flex gap-4 text-gray-400">
@@ -34,15 +30,14 @@
   </header>
 
   <!-- MAIN CONTENT -->
-  <main class="p-4 max-w-md mx-auto pb-24">
+  <main class="p-4 max-w-6xl mx-auto pb-24">
 
     <!-- Top Info / Budget -->
-    <div class="flex justify-between items-end mb-4">
+    <div class="flex flex-wrap justify-between items-end gap-4 mb-4">
       <div>
         <h2 class="text-xl font-bold text-gray-800">Pick Your 5</h2>
         <p class="text-xs text-gray-500">
-          Deadline:
-          <span class="text-flb-red font-bold">Fri 18:00</span>
+          Deadline: <span class="text-flb-red font-bold">Fri 18:00</span>
         </p>
       </div>
 
@@ -52,170 +47,197 @@
           $<span id="budget-display">100.0</span>M
         </div>
 
-        <div class="text-xs text-gray-400 uppercase tracking-wide text-right mt-1">
-          Team Worth
-        </div>
-        <div class="text-gray-900 font-semibold text-sm text-right">
+        <div class="text-xs text-gray-400 uppercase tracking-wide mt-1">Team Worth</div>
+        <div class="text-gray-900 font-semibold text-sm">
           $<span id="team-worth">0.0</span>M
         </div>
       </div>
     </div>
 
-    <!-- COURT + POSITION BUTTONS -->
-    <section class="mb-5">
-      <div class="mx-auto border-[6px] border-flb-red rounded-[32px] overflow-hidden shadow-lg max-w-sm bg-orange-200">
-        <div class="relative w-full aspect-[3/4] bg-center bg-cover" style="background-image: url('images/court.png');">
+    <!-- 2-COLUMN LAYOUT -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
 
-          <!-- NOTE:
-            - Added a remove button inside each slot (top-right)
-            - Added data-slot="SF" etc so JS can remove correctly
-          -->
+      <!-- LEFT: COURT -->
+      <section class="mb-2">
+        <div class="mx-auto border-[6px] border-flb-red rounded-[32px] overflow-hidden shadow-lg max-w-sm bg-orange-200">
+          <div class="relative w-full aspect-[3/4] bg-center bg-cover" style="background-image: url('images/court.png');">
 
-          <!-- SF -->
-          <button type="button"
-            class="select-player-btn group absolute left-[18%] top-[28%] -translate-x-1/2 -translate-y-1/2
-                   rounded-full bg-white shadow-md flex flex-col items-center justify-center
-                   w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
-            data-position="SF">
+            <!-- SF -->
+            <button type="button"
+              class="select-player-btn group absolute left-[18%] top-[28%] -translate-x-1/2 -translate-y-1/2
+                     rounded-full bg-white shadow-md flex flex-col items-center justify-center
+                     w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
+              data-position="SF">
+              <span class="text-xs text-gray-500">SF</span>
+              <span id="pos-SF-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
+                Select SF
+              </span>
+              <span
+                class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
+                data-slot="SF"
+                title="Remove SF">
+                <i class="fas fa-xmark text-[12px]"></i>
+              </span>
+            </button>
 
-            <span class="text-xs text-gray-500">SF</span>
+            <!-- PF -->
+            <button type="button"
+              class="select-player-btn group absolute right-[18%] top-[28%] translate-x-1/2 -translate-y-1/2
+                     rounded-full bg-white shadow-md flex flex-col items-center justify-center
+                     w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
+              data-position="PF">
+              <span class="text-xs text-gray-500">PF</span>
+              <span id="pos-PF-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
+                Select PF
+              </span>
+              <span
+                class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
+                data-slot="PF"
+                title="Remove PF">
+                <i class="fas fa-xmark text-[12px]"></i>
+              </span>
+            </button>
 
-            <span id="pos-SF-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
-              Select SF
-            </span>
+            <!-- C -->
+            <button type="button"
+              class="select-player-btn group absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2
+                     rounded-full bg-white shadow-md flex flex-col items-center justify-center
+                     w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
+              data-position="C">
+              <span class="text-xs text-gray-500">C</span>
+              <span id="pos-C-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
+                Select C
+              </span>
+              <span
+                class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
+                data-slot="C"
+                title="Remove C">
+                <i class="fas fa-xmark text-[12px]"></i>
+              </span>
+            </button>
 
-            <!-- remove slot -->
-            <span
-              class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
-              data-slot="SF"
-              title="Remove SF">
-              <i class="fas fa-xmark text-[12px]"></i>
-            </span>
-          </button>
+            <!-- PG -->
+            <button type="button"
+              class="select-player-btn group absolute left-[28%] top-[56%] -translate-x-1/2 -translate-y-1/2
+                     rounded-full bg-white shadow-md flex flex-col items-center justify-center
+                     w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
+              data-position="PG">
+              <span class="text-xs text-gray-500">PG</span>
+              <span id="pos-PG-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
+                Select PG
+              </span>
+              <span
+                class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
+                data-slot="PG"
+                title="Remove PG">
+                <i class="fas fa-xmark text-[12px]"></i>
+              </span>
+            </button>
 
-          <!-- PF -->
-          <button type="button"
-            class="select-player-btn group absolute right-[18%] top-[28%] translate-x-1/2 -translate-y-1/2
-                   rounded-full bg-white shadow-md flex flex-col items-center justify-center
-                   w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
-            data-position="PF">
-            <span class="text-xs text-gray-500">PF</span>
-            <span id="pos-PF-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
-              Select PF
-            </span>
+            <!-- SG -->
+            <button type="button"
+              class="select-player-btn group absolute right-[28%] top-[56%] translate-x-1/2 -translate-y-1/2
+                     rounded-full bg-white shadow-md flex flex-col items-center justify-center
+                     w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
+              data-position="SG">
+              <span class="text-xs text-gray-500">SG</span>
+              <span id="pos-SG-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
+                Select SG
+              </span>
+              <span
+                class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
+                data-slot="SG"
+                title="Remove SG">
+                <i class="fas fa-xmark text-[12px]"></i>
+              </span>
+            </button>
 
-            <span
-              class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
-              data-slot="PF"
-              title="Remove PF">
-              <i class="fas fa-xmark text-[12px]"></i>
-            </span>
-          </button>
+            <!-- COACH -->
+            <button type="button"
+              class="select-player-btn group absolute left-1/2 bottom-4 -translate-x-1/2
+                     rounded-full bg-white shadow-md flex flex-col items-center justify-center
+                     w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
+              data-position="COACH">
+              <span class="text-[10px] text-gray-500">HC</span>
+              <span id="pos-COACH-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
+                Coach
+              </span>
+              <span
+                class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
+                data-slot="COACH"
+                title="Remove Coach">
+                <i class="fas fa-xmark text-[12px]"></i>
+              </span>
+            </button>
 
-          <!-- C -->
-          <button type="button"
-            class="select-player-btn group absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2
-                   rounded-full bg-white shadow-md flex flex-col items-center justify-center
-                   w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
-            data-position="C">
-            <span class="text-xs text-gray-500">C</span>
-            <span id="pos-C-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
-              Select C
-            </span>
-
-            <span
-              class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
-              data-slot="C"
-              title="Remove C">
-              <i class="fas fa-xmark text-[12px]"></i>
-            </span>
-          </button>
-
-          <!-- PG -->
-          <button type="button"
-            class="select-player-btn group absolute left-[28%] top-[56%] -translate-x-1/2 -translate-y-1/2
-                   rounded-full bg-white shadow-md flex flex-col items-center justify-center
-                   w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
-            data-position="PG">
-            <span class="text-xs text-gray-500">PG</span>
-            <span id="pos-PG-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
-              Select PG
-            </span>
-
-            <span
-              class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
-              data-slot="PG"
-              title="Remove PG">
-              <i class="fas fa-xmark text-[12px]"></i>
-            </span>
-          </button>
-
-          <!-- SG -->
-          <button type="button"
-            class="select-player-btn group absolute right-[28%] top-[56%] translate-x-1/2 -translate-y-1/2
-                   rounded-full bg-white shadow-md flex flex-col items-center justify-center
-                   w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
-            data-position="SG">
-            <span class="text-xs text-gray-500">SG</span>
-            <span id="pos-SG-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
-              Select SG
-            </span>
-
-            <span
-              class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
-              data-slot="SG"
-              title="Remove SG">
-              <i class="fas fa-xmark text-[12px]"></i>
-            </span>
-          </button>
-
-          <!-- COACH -->
-          <button type="button"
-            class="select-player-btn group absolute left-1/2 bottom-4 -translate-x-1/2
-                   rounded-full bg-white shadow-md flex flex-col items-center justify-center
-                   w-16 h-16 text-[11px] font-bold text-gray-700 border border-gray-200"
-            data-position="COACH">
-            <span class="text-[10px] text-gray-500">HC</span>
-            <span id="pos-COACH-name" class="text-[9px] font-normal text-gray-700 leading-tight text-center px-1">
-              Coach
-            </span>
-
-            <span
-              class="remove-slot-btn hidden group-hover:flex absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border shadow items-center justify-center text-gray-500 hover:text-red-500"
-              data-slot="COACH"
-              title="Remove Coach">
-              <i class="fas fa-xmark text-[12px]"></i>
-            </span>
-          </button>
-
+          </div>
         </div>
-      </div>
 
-      <p class="mt-2 text-[11px] text-center text-gray-500">
-        Tap a circle to pick a player. Tap their name again to set as <span class="font-bold">Captain</span>.
-        <br />
-        Hover the circle and press <span class="font-bold">×</span> to remove only that slot.
-      </p>
-    </section>
+        <p class="mt-2 text-[11px] text-center text-gray-500">
+          Tap a circle to pick a player. Hover and press <b>×</b> to remove only that slot.
+        </p>
+      </section>
 
-    <!-- SAVE TEAM BUTTON -->
-    <div class="grid grid-cols-1 gap-3 mt-4 max-w-md mx-auto">
-      <button id="submitTeam" class="btn-primary text-sm py-3 w-full">
-        Buy My Team
-      </button>
+      <!-- RIGHT: MY TEAM LIST + CAPTAIN -->
+      <aside class="space-y-4">
 
-      <button id="deleteTeamBtn" class="btn-secondary text-sm py-3 w-full">
-        Sell My Team
-      </button>
+        <!-- My Team Card -->
+        <section class="bg-white rounded-2xl shadow p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-gray-800 flex items-center gap-2">
+              <i class="fas fa-users text-flb-red"></i> My Team
+            </h3>
+            <span class="text-xs text-gray-400">Week <span id="ui-week">1</span></span>
+          </div>
+
+          <div id="my-team-list" class="space-y-2">
+            <!-- JS fills cards -->
+            <p class="text-sm text-gray-500">Pick players to see your team here.</p>
+          </div>
+
+          <!-- Captain selector -->
+          <div class="mt-4 border-t pt-3">
+            <div class="flex items-center justify-between">
+              <div class="text-sm font-bold text-gray-800">Captain</div>
+              <div id="captain-pill" class="text-[11px] px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                Not selected
+              </div>
+            </div>
+
+            <div class="mt-2 flex gap-2">
+              <button id="btnChooseCaptain" type="button" class="btn-secondary text-xs px-3 py-2 flex-1">
+                Choose Captain
+              </button>
+              <button id="btnClearCaptain" type="button" class="text-xs px-3 py-2 rounded bg-gray-100 hover:bg-gray-200">
+                Clear
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Actions -->
+        <section class="bg-white rounded-2xl shadow p-4">
+          <div class="grid grid-cols-1 gap-3">
+            <button id="submitTeam" class="btn-primary text-sm py-3 w-full">
+              Buy My Team
+            </button>
+            <button id="deleteTeamBtn" class="btn-secondary text-sm py-3 w-full">
+              Sell My Team
+            </button>
+          </div>
+          <p class="text-[11px] text-gray-500 mt-3">
+            Tip: “Buy” saves your team. “Sell” deletes it and refunds your budget (if your backend refunds).
+          </p>
+        </section>
+
+      </aside>
     </div>
-
   </main>
 
-  <!-- SHOP MODAL FOR PLAYER / COACH SELECTION -->
+  <!-- SHOP MODAL -->
   <div id="playerModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
     <div class="bg-white w-[520px] max-w-[92%] p-5 rounded-2xl max-h-[85vh] overflow-hidden shadow-xl">
 
-      <!-- Header -->
       <div class="flex items-start justify-between gap-3 mb-3">
         <div>
           <h2 id="modalTitle" class="text-lg font-black text-gray-800">Select</h2>
@@ -227,7 +249,6 @@
         </button>
       </div>
 
-      <!-- Search + filters -->
       <div class="flex flex-col gap-2 mb-3">
         <div class="relative">
           <i class="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
@@ -237,7 +258,6 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <!-- JS can fill these dynamically if you want -->
           <button type="button" class="modal-filter-chip px-3 py-1 rounded-full bg-gray-100 text-xs font-semibold"
             data-filter="ALL">All</button>
           <button type="button" class="modal-filter-chip px-3 py-1 rounded-full bg-gray-100 text-xs font-semibold"
@@ -247,28 +267,52 @@
         </div>
       </div>
 
-      <!-- List -->
       <div class="border rounded-xl bg-gray-50 p-2 overflow-y-auto" style="max-height: 58vh;">
-        <div id="modalList" class="grid grid-cols-1 gap-2">
-          <!-- JS will inject "shop cards" here -->
-          <!-- Example card structure your JS can render:
-            <div class="bg-white border rounded-xl p-3 flex items-center justify-between">
-              <div>
-                <div class="font-bold text-sm">Wael Arakji</div>
-                <div class="text-[11px] text-gray-500">Riyadi • PG</div>
-              </div>
-              <div class="flex items-center gap-3">
-                <div class="font-mono text-sm font-bold">$18.0M</div>
-                <button class="btn-primary text-xs px-3 py-2">Select</button>
-              </div>
-            </div>
-          -->
-        </div>
+        <div id="modalList" class="grid grid-cols-1 gap-2"></div>
       </div>
 
       <p class="mt-2 text-[11px] text-gray-500">
         Tip: selecting a player replaces the current one in that position.
       </p>
+    </div>
+  </div>
+
+  <!-- CAPTAIN PICKER MODAL -->
+  <div id="captainModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+    <div class="bg-white w-[420px] max-w-[92%] p-5 rounded-2xl shadow-xl">
+      <div class="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-lg font-black text-gray-800">Choose Captain</h2>
+          <p class="text-[11px] text-gray-500">Pick one of your selected players</p>
+        </div>
+        <button id="closeCaptainModal" type="button"
+          class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+
+      <div id="captainList" class="space-y-2"></div>
+
+      <button id="btnConfirmCaptain" type="button" class="btn-primary text-sm py-3 w-full mt-3">
+        Confirm Captain
+      </button>
+    </div>
+  </div>
+
+  <!-- TOAST / POPUP -->
+  <div id="toast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[9999]">
+    <div id="toastBox"
+      class="bg-white border shadow-lg rounded-2xl px-4 py-3 flex items-start gap-3 min-w-[320px]">
+      <div id="toastIcon" class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
+        <i class="fas fa-circle-exclamation"></i>
+      </div>
+      <div class="flex-1">
+        <div id="toastTitle" class="font-bold text-gray-800 text-sm">Error</div>
+        <div id="toastMsg" class="text-xs text-gray-500 mt-0.5">Message</div>
+      </div>
+      <button id="toastClose" class="text-gray-400 hover:text-gray-700">
+        <i class="fas fa-xmark"></i>
+      </button>
     </div>
   </div>
 
@@ -288,7 +332,6 @@
     </a>
   </nav>
 
-  <!-- TEAM BUILDER LOGIC -->
   <script type="module" src="js/team-builder.js"></script>
 </body>
 

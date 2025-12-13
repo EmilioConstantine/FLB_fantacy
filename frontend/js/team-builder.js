@@ -99,6 +99,23 @@ const modalList   = document.getElementById("modalList");
 const closeModal  = document.getElementById("closeModal");
 const saveBtn     = document.getElementById("submitTeam");
 const deleteBtn   = document.getElementById("deleteTeamBtn");
+const myTeamList = document.getElementById("my-team-list");
+const captainPill = document.getElementById("captain-pill");
+
+const btnChooseCaptain = document.getElementById("btnChooseCaptain");
+const btnClearCaptain = document.getElementById("btnClearCaptain");
+
+const captainModal = document.getElementById("captainModal");
+const closeCaptainModal = document.getElementById("closeCaptainModal");
+const captainList = document.getElementById("captainList");
+const btnConfirmCaptain = document.getElementById("btnConfirmCaptain");
+
+// toast
+const toast = document.getElementById("toast");
+const toastTitle = document.getElementById("toastTitle");
+const toastMsg = document.getElementById("toastMsg");
+const toastClose = document.getElementById("toastClose");
+
 
 // Optional modal UI (from updated HTML)
 const modalSearch   = document.getElementById("modalSearch");
@@ -106,6 +123,177 @@ const modalSubtitle = document.getElementById("modalSubtitle");
 
 // Helper
 function el(id) { return document.getElementById(id); }
+function showToast(title, msg, type = "error") {
+  if (!toast) {
+    alert(msg); // fallback
+    return;
+  }
+
+  toastTitle.textContent = title || (type === "success" ? "Success" : "Error");
+  toastMsg.textContent = msg || "";
+
+  toast.classList.remove("hidden");
+
+  // auto hide after 3s
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.add("hidden"), 3000);
+}
+
+function hideToast() {
+  if (toast) toast.classList.add("hidden");
+}
+
+if (toastClose) toastClose.addEventListener("click", hideToast);
+
+
+function formatMoney(x) {
+  const n = Number(x);
+  return Number.isFinite(n) ? n.toFixed(1) : "0.0";
+}
+
+function getSelectedPlayersArray() {
+  const arr = [];
+  ["PG","SG","SF","PF","C"].forEach(pos => {
+    if (selected[pos]) arr.push({ ...selected[pos], _pos: pos });
+  });
+  return arr;
+}
+
+function renderCaptainPill() {
+  if (!captainPill) return;
+
+  if (!selected.CAPTAIN) {
+    captainPill.textContent = "Not selected";
+    captainPill.className = "text-[11px] px-2 py-1 rounded-full bg-gray-100 text-gray-600";
+    return;
+  }
+
+  // find captain name
+  const all = getSelectedPlayersArray();
+  const cap = all.find(x => x.id === selected.CAPTAIN || x.player_id === selected.CAPTAIN);
+
+  captainPill.textContent = cap ? `Captain: ${cap.name}` : "Captain selected";
+  captainPill.className = "text-[11px] px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 font-bold";
+}
+
+function renderMyTeamList() {
+  if (!myTeamList) return;
+
+  const players = getSelectedPlayersArray();
+  const coach = selected.COACH ? { ...selected.COACH, _pos: "COACH" } : null;
+
+  if (!players.length && !coach) {
+    myTeamList.innerHTML = `<p class="text-sm text-gray-500">Pick players to see your team here.</p>`;
+    renderCaptainPill();
+    return;
+  }
+
+  const rows = [];
+
+  // players cards
+  for (const p of players) {
+    const isCap = (selected.CAPTAIN && (p.id === selected.CAPTAIN));
+    rows.push(`
+      <div class="bg-gray-50 border rounded-xl px-3 py-2 flex items-center justify-between">
+        <div class="min-w-0">
+          <div class="text-xs text-gray-500 font-bold">${p._pos}${isCap ? `<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 font-bold">CAP</span>` : ""}</div>
+          <div class="text-sm font-bold text-gray-800 truncate">${p.name || "Player"}</div>
+          <div class="text-[11px] text-gray-500">${p.team || "—"} • $${formatMoney(p.price)}M</div>
+        </div>
+        <button type="button"
+          class="text-gray-400 hover:text-red-600"
+          data-remove-pos="${p._pos}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `);
+  }
+
+  // coach card
+  if (coach) {
+    rows.push(`
+      <div class="bg-gray-50 border rounded-xl px-3 py-2 flex items-center justify-between">
+        <div class="min-w-0">
+          <div class="text-xs text-gray-500 font-bold">COACH</div>
+          <div class="text-sm font-bold text-gray-800 truncate">${coach.name || "Coach"}</div>
+          <div class="text-[11px] text-gray-500">${coach.team || "—"} • $${formatMoney(coach.price)}M</div>
+        </div>
+        <button type="button"
+          class="text-gray-400 hover:text-red-600"
+          data-remove-pos="COACH">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `);
+  }
+
+  myTeamList.innerHTML = rows.join("");
+
+  // remove click
+  myTeamList.querySelectorAll("[data-remove-pos]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const pos = btn.getAttribute("data-remove-pos");
+      clearSlot(pos);
+      renderMyTeamList();
+    });
+  });
+
+  renderCaptainPill();
+}
+let pendingCaptainId = null;
+
+function openCaptainModal() {
+  const players = getSelectedPlayersArray();
+
+  if (!players.length) {
+    showToast("Captain", "Select at least 1 player first.");
+    return;
+  }
+
+  pendingCaptainId = selected.CAPTAIN || null;
+
+  captainList.innerHTML = players.map(p => {
+    const checked = (pendingCaptainId && p.id === pendingCaptainId) ? "checked" : "";
+    return `
+      <label class="bg-gray-50 border rounded-xl px-3 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-100">
+        <div>
+          <div class="text-sm font-bold text-gray-800">${p.name}</div>
+          <div class="text-[11px] text-gray-500">${p.team || "—"} • ${p._pos}</div>
+        </div>
+        <input type="radio" name="captainRadio" value="${p.id}" ${checked} />
+      </label>
+    `;
+  }).join("");
+
+  captainModal.classList.remove("hidden");
+}
+
+function closeCapModal() {
+  captainModal.classList.add("hidden");
+}
+
+if (btnChooseCaptain) btnChooseCaptain.addEventListener("click", openCaptainModal);
+if (btnClearCaptain) btnClearCaptain.addEventListener("click", () => {
+  selected.CAPTAIN = null;
+  renderMyTeamList();
+});
+
+if (closeCaptainModal) closeCaptainModal.addEventListener("click", closeCapModal);
+
+if (btnConfirmCaptain) {
+  btnConfirmCaptain.addEventListener("click", () => {
+    const picked = captainList.querySelector('input[name="captainRadio"]:checked');
+    if (!picked) {
+      showToast("Captain", "Please choose a captain.");
+      return;
+    }
+    selected.CAPTAIN = Number(picked.value);
+    renderMyTeamList();
+    closeCapModal();
+    showToast("Captain", "Captain selected successfully!", "success");
+  });
+}
+
 
 // ---- BUDGET + TEAM WORTH DISPLAY ----
 function setBudgetDisplay(budget) {
@@ -157,6 +345,7 @@ function resetSelectedUI() {
   });
 
   setTeamWorth(0);
+  renderMyTeamList();
 }
 
 function clearSlot(pos) {
@@ -181,6 +370,8 @@ function clearSlot(pos) {
   applyTeamColorToSlot(pos, null);
 
   computeSelectedTeamWorth();
+  renderMyTeamList();
+
 }
 
 // ---- INITIALIZATION ----
@@ -334,6 +525,8 @@ function hydrateSelectedFromTeam(team) {
   }
 
   computeSelectedTeamWorth();
+  renderMyTeamList();
+
 }
 
 // ---- MODAL SHOP LOGIC ----
@@ -525,28 +718,47 @@ function selectItem(position, item) {
   applyTeamColorToSlot(position, item.team);
 
   computeSelectedTeamWorth();
+  renderMyTeamList();
+
 }
 
 // ---- SAVE (CREATE / OVERWRITE) TEAM ----
 async function saveTeam() {
   if (!currentUser) {
-    alert("You must log in.");
+    showToast("Login required", "You must log in to save a team.");
+    window.location.href = "login.html";
     return;
   }
 
+  // 1) Validate all positions
   const required = ["PG", "SG", "SF", "PF", "C", "COACH"];
   for (const r of required) {
     if (!selected[r]) {
-      alert(`Please select a ${r}.`);
+      showToast("Missing selection", `Please select a ${r}.`);
       return;
     }
   }
 
+  // 2) Captain must be selected using the captain UI
   if (!selected.CAPTAIN) {
-    alert("Select captain by clicking a player name.");
+    showToast("Captain required", "Please choose a captain using the Captain button.");
     return;
   }
 
+  // 3) Budget check (client-side)
+  const totalCost = computeSelectedTeamWorth(); // returns number
+  const budgetText = document.getElementById("budget-display")?.textContent ?? "100";
+  const currentBudget = Number(budgetText);
+
+  if (Number.isFinite(currentBudget) && totalCost > currentBudget) {
+    showToast(
+      "Not enough budget",
+      `Your team costs $${totalCost.toFixed(1)}M but your budget is $${currentBudget.toFixed(1)}M.`
+    );
+    return;
+  }
+
+  // 4) Build payload
   const players = [
     selected.PG.id,
     selected.SG.id,
@@ -565,26 +777,48 @@ async function saveTeam() {
   };
 
   try {
+    // 5) Overwrite if exists
     if (existingTeamId) {
-      const ok = confirm("You already created a team for this week. Overwrite it with the new selection?");
+      const ok = confirm(
+        "You already created a team for this week. Overwrite it with the new selection?"
+      );
       if (!ok) return;
 
-      await TeamService.deleteTeam({ user_id: currentUser.id, week_number: CURRENT_WEEK });
+      const del = await TeamService.deleteTeam({
+        user_id: currentUser.id,
+        week_number: CURRENT_WEEK
+      });
+
+      if (del && del.success === false) {
+        showToast("Could not overwrite", del.message || "Failed to delete existing team.");
+        return;
+      }
+
       existingTeamId = null;
     }
 
+    // 6) Create team
     const res = await TeamService.createTeam(payload);
 
     if (!res || !res.success) {
-      alert(res?.message || "Team save failed.");
+      // Common budget-related backend messages
+      const msg = (res?.message || "").toLowerCase();
+      if (msg.includes("budget") || msg.includes("not enough") || msg.includes("negative")) {
+        showToast("Budget error", res.message || "Not enough budget to buy this team.");
+      } else {
+        showToast("Team save failed", res?.message || "Please try again.");
+      }
       return;
     }
 
+    // 7) Refresh UI from server (budget, team, etc.)
     await initTeamForCurrentWeek();
-    alert("Team saved successfully!");
+    renderMyTeamList?.(); // if you added it; safe optional
+
+    showToast("Saved", "Team saved successfully!", "success");
   } catch (err) {
     console.error("saveTeam error:", err);
-    alert("Unexpected error while saving team.");
+    showToast("Unexpected error", err?.message || "Unexpected error while saving team.");
   }
 }
 

@@ -17,8 +17,35 @@ function el(id) {
   return document.getElementById(id);
 }
 
-/* ---------- TOP CARD RENDERING (already fine) ---------- */
+/* ---------- TEAM COLORS (robust matching) ---------- */
+const TEAM_COLORS = {
+  sagesse:  "#16a34a", // green
+  riyadi:   "#dc2626", // red
+  antranik: "#f59e0b", // amber
+  byblos:   "#2563eb", // blue
+  // add more teams if needed:
+  // champville: "#7c3aed",
+};
 
+function normalizeTeamName(teamName) {
+  return String(teamName || "").trim().toLowerCase();
+}
+
+function teamToColor(teamName) {
+  const t = normalizeTeamName(teamName);
+  if (!t) return null;
+
+  // exact
+  if (TEAM_COLORS[t]) return TEAM_COLORS[t];
+
+  // partial (ex: "Sagesse SC")
+  for (const key of Object.keys(TEAM_COLORS)) {
+    if (t.includes(key)) return TEAM_COLORS[key];
+  }
+  return null;
+}
+
+/* ---------- TOP CARD RENDERING (already fine) ---------- */
 function renderUserOverview(historyRes) {
   const totals = historyRes.totals || {};
   const history = historyRes.history || [];
@@ -32,7 +59,6 @@ function renderUserOverview(historyRes) {
 }
 
 /* ---------- PLAYER PERFORMANCE LIST ---------- */
-
 function renderPlayerPerformance(list) {
   const container = el("player-performance");
   container.innerHTML = "";
@@ -53,26 +79,36 @@ function renderPlayerPerformance(list) {
     const left = document.createElement("div");
     left.className = "flex items-center gap-3";
 
+    // --- TEAM COLORED CIRCLE ---
     const badge = document.createElement("div");
     badge.className =
-      "w-9 h-9 rounded-full bg-green-600 text-white flex items-center justify-center text-xs font-bold";
-    // use first 3 letters of team name as badge
+      "w-9 h-9 rounded-full text-white flex items-center justify-center text-xs font-bold shadow";
+
     const teamCode = (p.team || "?").toString().slice(0, 3).toUpperCase();
     badge.textContent = teamCode;
+
+    const color = teamToColor(p.team) || "#9ca3af"; // fallback gray
+    badge.style.backgroundColor = color;
+
+    // Optional: a subtle ring
+    badge.style.border = "2px solid rgba(255,255,255,0.85)";
 
     const nameBlock = document.createElement("div");
 
     const name = document.createElement("div");
     name.className = "text-sm font-semibold";
-    const cap = p.is_captain ? " (C)" : "";
+
+    const isCaptain =
+      p.is_captain === 1 || p.is_captain === "1" || p.is_captain === true;
+
+    const cap = isCaptain ? " (C)" : "";
     name.textContent = (p.name || `Player #${p.player_id}`) + cap;
 
-    const vs = document.createElement("div");
-    vs.className = "text-[11px] text-gray-500";
-    // if later you store opponent, you can show it here
-    vs.textContent = ""; 
+    const sub = document.createElement("div");
+    sub.className = "text-[11px] text-gray-500";
+    sub.textContent = p.team ? p.team : "";
 
-    nameBlock.append(name, vs);
+    nameBlock.append(name, sub);
     left.append(badge, nameBlock);
 
     const pts = document.createElement("div");
@@ -85,7 +121,6 @@ function renderPlayerPerformance(list) {
 }
 
 /* ---------- FETCH PLAYER STATS FOR LAST GAMEWEEK ---------- */
-
 async function fetchPlayerStatsForLastWeek(userId, lastWeekNumber) {
   try {
     const res = await PlayerService.getUserTeamWeekStats(userId, lastWeekNumber);
@@ -105,11 +140,8 @@ async function fetchPlayerStatsForLastWeek(userId, lastWeekNumber) {
 }
 
 /* ---------- MAIN INIT ---------- */
-
 async function init() {
-  const user = AuthService.getCurrentUser
-    ? AuthService.getCurrentUser()
-    : null;
+  const user = AuthService.getCurrentUser ? AuthService.getCurrentUser() : null;
 
   if (!user) {
     alert("Please login to view your stats.");
@@ -129,7 +161,6 @@ async function init() {
 
     const history = histRes.history || [];
     if (!history.length) {
-      // user has never scored, so no per-player stats
       renderPlayerPerformance([]);
       return;
     }
@@ -138,10 +169,11 @@ async function init() {
     const last = history[history.length - 1];
     const weekNumber = last.week_number;
 
-    // 2) Get player stats for that week (using new PHP)
+    // 2) Get player stats for that week
     await fetchPlayerStatsForLastWeek(user.id, weekNumber);
   } catch (err) {
     console.error("My stats exception", err);
+    renderPlayerPerformance([]);
   }
 }
 
