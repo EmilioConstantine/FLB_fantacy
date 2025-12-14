@@ -41,10 +41,11 @@ if ($week_number <= 0) {
 
 // 1) get all teams for that week
 $sqlTeams = "
-  SELECT id, user_id, coach_id
+  SELECT id, user_id, coach_id, created_at
   FROM user_team
   WHERE week_number = ?
 ";
+
 $stTeams = $conn->prepare($sqlTeams);
 $stTeams->bind_param("i", $week_number);
 $stTeams->execute();
@@ -67,12 +68,14 @@ $stCoach  = $conn->prepare($sqlCoach);
 $sqlPlayers = "
   SELECT utm.player_id, ws.fantasy_points
   FROM user_team_members utm
-  LEFT JOIN weekly_stats ws 
-    ON ws.player_id = utm.player_id 
+  LEFT JOIN weekly_stats ws
+    ON ws.player_id = utm.player_id
    AND ws.week_number = ?
+   AND ws.created_at >= ?   
   WHERE utm.user_team_id = ?
     AND utm.role = 'PLAYER'
 ";
+
 $stPlayers = $conn->prepare($sqlPlayers);
 
 $sqlUpsert = "
@@ -90,7 +93,9 @@ while ($team = $resTeams->fetch_assoc()) {
     $coach_id = (int)$team['coach_id'];
 
     // 2) sum player fantasy points (already computed in weekly_stats)
-    $stPlayers->bind_param("ii", $week_number, $team_id);
+    $team_created_at = $team['created_at']; // from user_team
+$stPlayers->bind_param("isi", $week_number, $team_created_at, $team_id);
+
     $stPlayers->execute();
     $resPlayers = $stPlayers->get_result();
 

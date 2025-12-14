@@ -100,6 +100,16 @@ export const LeaderboardService = {
       )}&week_number=${encodeURIComponent(weekNumber)}`
     );
   },
+    /**
+   * Weekly leaderboard (one week)
+   * Wraps backend/api/leaderboard/get_week_leaderboard.php?week_number=...
+   */
+  getWeekLeaderboard(weekNumber) {
+    return api.get(
+      `leaderboard/get_week_leaderboard.php?week_number=${encodeURIComponent(weekNumber)}`
+    );
+  },
+
 };
 
 export default LeaderboardService;

@@ -19,12 +19,11 @@ function el(id) {
 
 /* ---------- TEAM COLORS (robust matching) ---------- */
 const TEAM_COLORS = {
-  sagesse:  "#16a34a", // green
-  riyadi:   "#dc2626", // red
-  antranik: "#f59e0b", // amber
-  byblos:   "#2563eb", // blue
-  // add more teams if needed:
-  // champville: "#7c3aed",
+  sagesse: "#16a34a", // green
+    riyadi: "#cddc26ff", // red
+    antranik: "#0b0bf5ff", // amber
+    homenetmen: "#eb5a25ff", // blue
+    maristes: "#25b6ebff", // blue
 };
 
 function normalizeTeamName(teamName) {

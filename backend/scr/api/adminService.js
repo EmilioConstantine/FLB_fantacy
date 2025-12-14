@@ -2,7 +2,7 @@
 import api from "./apiClient.js";
 
 export const AdminService = {
-    /**
+  /**
    * Check current admin session
    * Calls: admin/me.php
    * Returns: { success: true, admin: {...} } or { success:false }
@@ -64,7 +64,6 @@ export const AdminService = {
    * Body: { week_number, stats: [ { player_id, points, rebounds, ... } ] }
    */
   addStats(payload) {
-    // payload is already in the correct format (same as test HTML)
     return api.post("admin/admin_add_stats.php", payload);
   },
 
@@ -81,12 +80,48 @@ export const AdminService = {
   },
 
   /**
-   * Optional, if you later create this PHP:
+   * Optional
    * Calls: admin/update_player_prices.php
    */
   updatePlayerPrices() {
     return api.get("admin/update_player_prices.php");
-  }
+  },
+
+  // ---------------- WEEK LOCK / FREEZE ----------------
+
+  /**
+   * Get lock status for a week
+   * Calls: admin/get_week_lock.php?week_number=...
+   * Returns: { success:true, week_number, is_locked }
+   */
+  getWeekLock(week_number) {
+    return api.get(
+      `admin/get_week_lock.php?week_number=${encodeURIComponent(week_number)}`
+    );
+  },
+
+  /**
+   * Set lock status for a week
+   * Calls: admin/set_week_lock.php
+   * Body: { week_number, is_locked }  // is_locked should be 0/1
+   */
+  setWeekLock(week_number, is_locked) {
+    return api.post("admin/set_week_lock.php", {
+      week_number: Number(week_number),
+      is_locked: Number(is_locked) ? 1 : 0
+    });
+  },
+    // ---------------- CURRENT WEEK ----------------
+  getCurrentWeek() {
+    return api.get("admin/get_current_week.php");
+  },
+
+  setCurrentWeek(current_week) {
+    return api.post("admin/set_current_week.php", {
+      current_week: Number(current_week)
+    });
+  },
+
 };
 
 export default AdminService;

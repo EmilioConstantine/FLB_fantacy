@@ -1,161 +1,152 @@
 // frontend/js/team-builder.js
-import * as AuthMod from "../../backend/scr/api/authService.js";
+import * as AuthMod   from "../../backend/scr/api/authService.js";
 import * as PlayerMod from "../../backend/scr/api/playerService.js";
-import * as CoachMod from "../../backend/scr/api/coachService.js";
-import * as TeamMod from "../../backend/scr/api/teamService.js";
+import * as CoachMod  from "../../backend/scr/api/coachService.js";
+import * as TeamMod   from "../../backend/scr/api/teamService.js";
+const BASE = "/FLB_fantacy/backend/api";
 
 // ---- TEAM COLORS (robust matching) ----
-// Keys are lowercase; we match exact OR partial (ex: "Sagesse SC" contains "sagesse")
 const TEAM_COLORS = {
-    sagesse: "#16a34a", // green
-    riyadi: "#cddc26ff", // red
-    antranik: "#0b0bf5ff", // amber
-    homenetmen: "#eb5a25ff", // blue
-    maristes: "#25b6ebff", // blue
-
-    // add more teams here if needed:
-    // champville: "#7c3aed",
-    // mrouj: "#0ea5e9",
+  sagesse: "#16a34a",
+  riyadi: "#cddc26ff",
+  antranik: "#0b0bf5ff",
+  homenetmen: "#eb5a25ff",
+  maristes: "#25b6ebff",
 };
 
 function normalizeTeamName(teamName) {
-    return String(teamName || "").trim().toLowerCase();
+  return String(teamName || "").trim().toLowerCase();
 }
 
 function teamToColor(teamName) {
-    const t = normalizeTeamName(teamName);
-    if (!t) return null;
-
-    // exact
-    if (TEAM_COLORS[t]) return TEAM_COLORS[t];
-
-    // partial
-    for (const key of Object.keys(TEAM_COLORS)) {
-        if (t.includes(key)) return TEAM_COLORS[key];
-    }
-    return null;
+  const t = normalizeTeamName(teamName);
+  if (!t) return null;
+  if (TEAM_COLORS[t]) return TEAM_COLORS[t];
+  for (const key of Object.keys(TEAM_COLORS)) {
+    if (t.includes(key)) return TEAM_COLORS[key];
+  }
+  return null;
 }
 
 function applyTeamColorToSlot(position, teamName) {
-    const btn = document.querySelector(`.select-player-btn[data-position="${position}"]`);
-    if (!btn) return;
+  const btn = document.querySelector(`.select-player-btn[data-position="${position}"]`);
+  if (!btn) return;
 
-    const color = teamToColor(teamName);
+  const color = teamToColor(teamName);
+  const spans = btn.querySelectorAll("span");
+  const posLabel  = spans?.[0] || null;
+  const nameLabel = btn.querySelector(`#pos-${position}-name`);
 
-    // Inner labels
-    const spans = btn.querySelectorAll("span");
-    const posLabel = spans ? .[0] || null; // PG/SF/etc or HC
-    const nameLabel = btn.querySelector(`#pos-${position}-name`);
+  if (!color) {
+    btn.style.backgroundColor = "";
+    btn.style.borderColor = "";
+    btn.style.color = "";
+    if (posLabel) posLabel.style.color = "";
+    if (nameLabel) nameLabel.style.color = "";
+    return;
+  }
 
-    if (!color) {
-        // reset
-        btn.style.backgroundColor = "";
-        btn.style.borderColor = "";
-        btn.style.color = "";
-        if (posLabel) posLabel.style.color = "";
-        if (nameLabel) nameLabel.style.color = "";
-        return;
-    }
+  btn.style.backgroundColor = color;
+  btn.style.borderColor = "rgba(0,0,0,0.15)";
+  btn.style.color = "white";
 
-    btn.style.backgroundColor = color;
-    btn.style.borderColor = "rgba(0,0,0,0.15)";
-    btn.style.color = "white";
-
-    // force readable text (overrides Tailwind text-gray-*)
-    if (posLabel) posLabel.style.color = "rgba(255,255,255,0.9)";
-    if (nameLabel) nameLabel.style.color = "white";
+  if (posLabel) posLabel.style.color = "rgba(255,255,255,0.9)";
+  if (nameLabel) nameLabel.style.color = "white";
 }
 
 // Service auto-fallback
-const AuthService = AuthMod.AuthService || AuthMod.default || AuthMod;
+const AuthService   = AuthMod.AuthService     || AuthMod.default || AuthMod;
 const PlayerService = PlayerMod.PlayerService || PlayerMod.default || PlayerMod;
-const CoachService = CoachMod.CoachService || CoachMod.default || CoachMod;
-const TeamService = TeamMod.TeamService || TeamMod.default || TeamMod;
+const CoachService  = CoachMod.CoachService   || CoachMod.default || CoachMod;
+const TeamService   = TeamMod.TeamService     || TeamMod.default || TeamMod;
 
 // ---- CONFIG ----
-const CURRENT_WEEK = 1;
+let CURRENT_WEEK = 1; // will be overwritten from server
+
 
 // ---- STATE ----
-let currentUser = null;
+let currentUser    = null;
 let existingTeamId = null; // non-null if user already has a team for this week
 
 let selected = {
-    PG: null,
-    SG: null,
-    SF: null,
-    PF: null,
-    C: null,
-    COACH: null,
-    CAPTAIN: null
+  PG: null,
+  SG: null,
+  SF: null,
+  PF: null,
+  C: null,
+  COACH: null,
+  CAPTAIN: null
 };
 
 // Modal state
-let activePosition = null; // "PG" | ... | "COACH"
-let modalItemsRaw = []; // raw items from API (players or coaches)
-let activeChipFilter = "ALL"; // ALL | CHEAP | EXPENSIVE
+let activePosition = null;
+let modalItemsRaw  = [];
+let activeChipFilter = "ALL";
 
 // ---- DOM ELEMENTS ----
-<<<<<<< HEAD
 const modal       = document.getElementById("playerModal");
 const modalTitle  = document.getElementById("modalTitle");
 const modalList   = document.getElementById("modalList");
 const closeModal  = document.getElementById("closeModal");
+
 const saveBtn     = document.getElementById("submitTeam");
 const deleteBtn   = document.getElementById("deleteTeamBtn");
-const myTeamList = document.getElementById("my-team-list");
+
+const myTeamList  = document.getElementById("my-team-list");
 const captainPill = document.getElementById("captain-pill");
 
-const btnChooseCaptain = document.getElementById("btnChooseCaptain");
-const btnClearCaptain = document.getElementById("btnClearCaptain");
+const btnChooseCaptain     = document.getElementById("btnChooseCaptain");
+const btnClearCaptain      = document.getElementById("btnClearCaptain");
+const captainModal         = document.getElementById("captainModal");
+const closeCaptainModal    = document.getElementById("closeCaptainModal");
+const captainList          = document.getElementById("captainList");
+const btnConfirmCaptain    = document.getElementById("btnConfirmCaptain");
 
-const captainModal = document.getElementById("captainModal");
-const closeCaptainModal = document.getElementById("closeCaptainModal");
-const captainList = document.getElementById("captainList");
-const btnConfirmCaptain = document.getElementById("btnConfirmCaptain");
-
-// toast
-const toast = document.getElementById("toast");
+// Top toast elements (your existing toast)
+const toast      = document.getElementById("toast");
 const toastTitle = document.getElementById("toastTitle");
-const toastMsg = document.getElementById("toastMsg");
+const toastMsg   = document.getElementById("toastMsg");
 const toastClose = document.getElementById("toastClose");
 
-=======
-const modal = document.getElementById("playerModal");
-const modalTitle = document.getElementById("modalTitle");
-const modalList = document.getElementById("modalList");
-const closeModal = document.getElementById("closeModal");
-const saveBtn = document.getElementById("submitTeam");
-const deleteBtn = document.getElementById("deleteTeamBtn");
->>>>>>> 42de0511ce72d7defbb12deab0e65acbf1f8e8b6
-
-// Optional modal UI (from updated HTML)
-const modalSearch = document.getElementById("modalSearch");
+// Optional modal UI
+const modalSearch   = document.getElementById("modalSearch");
 const modalSubtitle = document.getElementById("modalSubtitle");
 
-// Helper
+// ---------- NICE UI HELPERS ----------
+function uiAlertSafe({ type="info", titleText="Message", subText="", message="" }) {
+  if (window.uiAlert) return window.uiAlert({ type, titleText, subText, message });
+  // fallback
+  alert(`${titleText}\n\n${message}`);
+}
+
+async function uiConfirmSafe({ titleText="Confirm", subText="", message="", okText="Confirm", cancelText="Cancel" }) {
+  if (window.uiConfirm) {
+    return await window.uiConfirm({ titleText, subText, message, okText, cancelText });
+  }
+  // fallback
+  return confirm(message || titleText);
+}
+
+function uiToastSafe(message) {
+  if (window.uiToast) window.uiToast(message);
+}
+
+// ---------- BASIC HELPERS ----------
 function el(id) { return document.getElementById(id); }
+
 function showToast(title, msg, type = "error") {
   if (!toast) {
-    alert(msg); // fallback
+    uiAlertSafe({ type, titleText: title, message: msg });
     return;
   }
-
   toastTitle.textContent = title || (type === "success" ? "Success" : "Error");
   toastMsg.textContent = msg || "";
-
   toast.classList.remove("hidden");
-
-  // auto hide after 3s
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => toast.classList.add("hidden"), 3000);
 }
-
-function hideToast() {
-  if (toast) toast.classList.add("hidden");
-}
-
-if (toastClose) toastClose.addEventListener("click", hideToast);
-
+function hideToast() { if (toast) toast.classList.add("hidden"); }
+toastClose?.addEventListener("click", hideToast);
 
 function formatMoney(x) {
   const n = Number(x);
@@ -170,6 +161,7 @@ function getSelectedPlayersArray() {
   return arr;
 }
 
+// ---------- CAPTAIN UI ----------
 function renderCaptainPill() {
   if (!captainPill) return;
 
@@ -179,13 +171,36 @@ function renderCaptainPill() {
     return;
   }
 
-  // find captain name
   const all = getSelectedPlayersArray();
   const cap = all.find(x => x.id === selected.CAPTAIN || x.player_id === selected.CAPTAIN);
 
   captainPill.textContent = cap ? `Captain: ${cap.name}` : "Captain selected";
   captainPill.className = "text-[11px] px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 font-bold";
 }
+async function loadCurrentWeek() {
+  try {
+    const res = await fetch(`${BASE}/team/get_current_week.php`, {
+      headers: { Accept: "application/json" },
+    });
+
+    const data = await res.json();
+
+    if (data?.success && Number(data.current_week) > 0) {
+      CURRENT_WEEK = Number(data.current_week);
+    } else {
+      CURRENT_WEEK = 1;
+    }
+
+    document.getElementById("ui-week").textContent = CURRENT_WEEK;
+    return CURRENT_WEEK;
+  } catch (e) {
+    console.error("loadCurrentWeek error:", e);
+    CURRENT_WEEK = 1;
+    return CURRENT_WEEK;
+  }
+}
+
+
 
 function renderMyTeamList() {
   if (!myTeamList) return;
@@ -201,26 +216,25 @@ function renderMyTeamList() {
 
   const rows = [];
 
-  // players cards
   for (const p of players) {
     const isCap = (selected.CAPTAIN && (p.id === selected.CAPTAIN));
     rows.push(`
       <div class="bg-gray-50 border rounded-xl px-3 py-2 flex items-center justify-between">
         <div class="min-w-0">
-          <div class="text-xs text-gray-500 font-bold">${p._pos}${isCap ? `<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 font-bold">CAP</span>` : ""}</div>
+          <div class="text-xs text-gray-500 font-bold">
+            ${p._pos}
+            ${isCap ? `<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 font-bold">CAP</span>` : ""}
+          </div>
           <div class="text-sm font-bold text-gray-800 truncate">${p.name || "Player"}</div>
           <div class="text-[11px] text-gray-500">${p.team || "—"} • $${formatMoney(p.price)}M</div>
         </div>
-        <button type="button"
-          class="text-gray-400 hover:text-red-600"
-          data-remove-pos="${p._pos}">
+        <button type="button" class="text-gray-400 hover:text-red-600" data-remove-pos="${p._pos}">
           <i class="fas fa-trash"></i>
         </button>
       </div>
     `);
   }
 
-  // coach card
   if (coach) {
     rows.push(`
       <div class="bg-gray-50 border rounded-xl px-3 py-2 flex items-center justify-between">
@@ -229,9 +243,7 @@ function renderMyTeamList() {
           <div class="text-sm font-bold text-gray-800 truncate">${coach.name || "Coach"}</div>
           <div class="text-[11px] text-gray-500">${coach.team || "—"} • $${formatMoney(coach.price)}M</div>
         </div>
-        <button type="button"
-          class="text-gray-400 hover:text-red-600"
-          data-remove-pos="COACH">
+        <button type="button" class="text-gray-400 hover:text-red-600" data-remove-pos="COACH">
           <i class="fas fa-trash"></i>
         </button>
       </div>
@@ -240,9 +252,8 @@ function renderMyTeamList() {
 
   myTeamList.innerHTML = rows.join("");
 
-  // remove click
   myTeamList.querySelectorAll("[data-remove-pos]").forEach(btn => {
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", () => {
       const pos = btn.getAttribute("data-remove-pos");
       clearSlot(pos);
       renderMyTeamList();
@@ -251,6 +262,7 @@ function renderMyTeamList() {
 
   renderCaptainPill();
 }
+
 let pendingCaptainId = null;
 
 function openCaptainModal() {
@@ -279,321 +291,283 @@ function openCaptainModal() {
   captainModal.classList.remove("hidden");
 }
 
-function closeCapModal() {
-  captainModal.classList.add("hidden");
-}
+function closeCapModal() { captainModal.classList.add("hidden"); }
 
-if (btnChooseCaptain) btnChooseCaptain.addEventListener("click", openCaptainModal);
-if (btnClearCaptain) btnClearCaptain.addEventListener("click", () => {
+btnChooseCaptain?.addEventListener("click", openCaptainModal);
+btnClearCaptain?.addEventListener("click", () => {
   selected.CAPTAIN = null;
   renderMyTeamList();
 });
 
-if (closeCaptainModal) closeCaptainModal.addEventListener("click", closeCapModal);
+closeCaptainModal?.addEventListener("click", closeCapModal);
 
-if (btnConfirmCaptain) {
-  btnConfirmCaptain.addEventListener("click", () => {
-    const picked = captainList.querySelector('input[name="captainRadio"]:checked');
-    if (!picked) {
-      showToast("Captain", "Please choose a captain.");
-      return;
-    }
-    selected.CAPTAIN = Number(picked.value);
-    renderMyTeamList();
-    closeCapModal();
-    showToast("Captain", "Captain selected successfully!", "success");
-  });
-}
+btnConfirmCaptain?.addEventListener("click", () => {
+  const picked = captainList.querySelector('input[name="captainRadio"]:checked');
+  if (!picked) {
+    showToast("Captain", "Please choose a captain.");
+    return;
+  }
+  selected.CAPTAIN = Number(picked.value);
+  renderMyTeamList();
+  closeCapModal();
+  uiToastSafe("Captain saved ✅");
+});
 
-
-// ---- BUDGET + TEAM WORTH DISPLAY ----
+// ---------- BUDGET + TEAM WORTH ----------
 function setBudgetDisplay(budget) {
-    const node = el("budget-display");
-    if (!node) return;
-
-    const n = Number(budget);
-    node.textContent = Number.isFinite(n) ? n.toFixed(1) : "100.0";
+  const node = el("budget-display");
+  if (!node) return;
+  const n = Number(budget);
+  node.textContent = Number.isFinite(n) ? n.toFixed(1) : "100.0";
 }
 
 function setTeamWorth(totalCost) {
-    const node = el("team-worth");
-    if (!node) return;
-
-    const n = Number(totalCost);
-    node.textContent = Number.isFinite(n) ? n.toFixed(1) : "0.0";
+  const node = el("team-worth");
+  if (!node) return;
+  const n = Number(totalCost);
+  node.textContent = Number.isFinite(n) ? n.toFixed(1) : "0.0";
 }
 
 function computeSelectedTeamWorth() {
-    let total = 0;
-
-    ["PG", "SG", "SF", "PF", "C"].forEach((pos) => {
-        if (selected[pos] && selected[pos].price != null) total += Number(selected[pos].price);
-    });
-
-    if (selected.COACH && selected.COACH.price != null) total += Number(selected.COACH.price);
-
-    setTeamWorth(total);
-    return total;
+  let total = 0;
+  ["PG", "SG", "SF", "PF", "C"].forEach((pos) => {
+    if (selected[pos] && selected[pos].price != null) total += Number(selected[pos].price);
+  });
+  if (selected.COACH && selected.COACH.price != null) total += Number(selected.COACH.price);
+  setTeamWorth(total);
+  return total;
 }
 
-// ---- RESET + CLEAR SLOT ----
+// ---------- RESET + CLEAR SLOT ----------
 function resetSelectedUI() {
-    selected = { PG: null, SG: null, SF: null, PF: null, C: null, COACH: null, CAPTAIN: null };
+  selected = { PG:null, SG:null, SF:null, PF:null, C:null, COACH:null, CAPTAIN:null };
 
-    const slots = ["PG", "SG", "SF", "PF", "C", "COACH"];
-    slots.forEach((pos) => {
-        const label = el(`pos-${pos}-name`);
-        if (!label) return;
+  ["PG", "SG", "SF", "PF", "C", "COACH"].forEach((pos) => {
+    const label = el(`pos-${pos}-name`);
+    if (!label) return;
 
-        if (pos === "COACH") label.textContent = "Select Coach";
-        else label.textContent = `Select ${pos}`;
+    if (pos === "COACH") label.textContent = "Select Coach";
+    else label.textContent = `Select ${pos}`;
 
-        label.classList.remove("cursor-pointer", "underline");
-        label.onclick = null;
+    label.classList.remove("cursor-pointer", "underline");
+    label.onclick = null;
 
-        // reset circle color
-        applyTeamColorToSlot(pos, null);
-    });
+    applyTeamColorToSlot(pos, null);
+  });
 
-<<<<<<< HEAD
   setTeamWorth(0);
   renderMyTeamList();
-=======
-    setTeamWorth(0);
->>>>>>> 42de0511ce72d7defbb12deab0e65acbf1f8e8b6
 }
 
 function clearSlot(pos) {
-    if (!pos) return;
+  if (!pos) return;
 
-    // If removing a captain player, reset captain
-    if (pos !== "COACH" && selected[pos] && selected.CAPTAIN === selected[pos].id) {
-        selected.CAPTAIN = null;
-    }
+  if (pos !== "COACH" && selected[pos] && selected.CAPTAIN === selected[pos].id) {
+    selected.CAPTAIN = null;
+  }
 
-    selected[pos] = null;
+  selected[pos] = null;
 
-    const label = el(`pos-${pos}-name`);
-    if (label) {
-        if (pos === "COACH") label.textContent = "Select Coach";
-        else label.textContent = `Select ${pos}`;
-        label.classList.remove("cursor-pointer", "underline");
-        label.onclick = null;
-    }
+  const label = el(`pos-${pos}-name`);
+  if (label) {
+    if (pos === "COACH") label.textContent = "Select Coach";
+    else label.textContent = `Select ${pos}`;
+    label.classList.remove("cursor-pointer", "underline");
+    label.onclick = null;
+  }
 
-    // reset circle color
-    applyTeamColorToSlot(pos, null);
+  applyTeamColorToSlot(pos, null);
 
-<<<<<<< HEAD
   computeSelectedTeamWorth();
   renderMyTeamList();
-
-=======
-    computeSelectedTeamWorth();
->>>>>>> 42de0511ce72d7defbb12deab0e65acbf1f8e8b6
 }
 
-// ---- INITIALIZATION ----
-document.addEventListener("DOMContentLoaded", async() => {
-    currentUser = AuthService.getCurrentUser();
-    if (!currentUser) {
-        window.location.href = "login.html";
-        return;
-    }
+// ---------- INIT ----------
+document.addEventListener("DOMContentLoaded", async () => {
+  currentUser = AuthService.getCurrentUser();
 
-    attachButtons();
-    await initTeamForCurrentWeek();
+  if (!currentUser) {
+    uiAlertSafe({
+      type: "warn",
+      titleText: "Login required",
+      subText: "Session expired",
+      message: "Please login again to build your team."
+    });
+    window.location.href = "login.html";
+    return;
+  }
+
+  attachButtons();
+await loadCurrentWeek();
+await initTeamForCurrentWeek();
+
 });
 
-// Attach events to position buttons + save/delete + remove-slot + filters
 function attachButtons() {
-    // open modal when clicking circle
-    document.querySelectorAll(".select-player-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            const position = btn.dataset.position;
-            openModal(position);
-        });
+  document.querySelectorAll(".select-player-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const position = btn.dataset.position;
+      openModal(position);
     });
+  });
 
-    // close modal
-    if (closeModal) {
-        closeModal.addEventListener("click", () => modal.classList.add("hidden"));
-    }
+  closeModal?.addEventListener("click", () => modal.classList.add("hidden"));
 
-    // save
-    if (saveBtn) saveBtn.addEventListener("click", saveTeam);
+  saveBtn?.addEventListener("click", saveTeam);
+  deleteBtn?.addEventListener("click", handleDeleteTeam);
 
-    // delete team
-    if (deleteBtn) deleteBtn.addEventListener("click", handleDeleteTeam);
+  // remove single slot (×)
+  document.addEventListener("click", (e) => {
+    const x = e.target.closest(".remove-slot-btn");
+    if (!x) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const pos = x.dataset.slot;
+    clearSlot(pos);
+  });
 
-    // remove single slot (×)
-    document.addEventListener("click", (e) => {
-        const x = e.target.closest(".remove-slot-btn");
-        if (!x) return;
-        e.preventDefault();
-        e.stopPropagation(); // prevent opening modal
-        const pos = x.dataset.slot;
-        clearSlot(pos);
+  // modal search
+  modalSearch?.addEventListener("input", () => renderModalShop());
+
+  // modal chips filter
+  document.querySelectorAll(".modal-filter-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      activeChipFilter = chip.dataset.filter || "ALL";
+
+      document.querySelectorAll(".modal-filter-chip").forEach((c) => {
+        c.classList.remove("bg-gray-900", "text-white");
+        c.classList.add("bg-gray-100");
+      });
+      chip.classList.remove("bg-gray-100");
+      chip.classList.add("bg-gray-900", "text-white");
+
+      renderModalShop();
     });
-
-    // modal search
-    if (modalSearch) {
-        modalSearch.addEventListener("input", () => renderModalShop());
-    }
-
-    // modal chips filter (optional)
-    document.querySelectorAll(".modal-filter-chip").forEach((chip) => {
-        chip.addEventListener("click", () => {
-            activeChipFilter = chip.dataset.filter || "ALL";
-
-            // UI highlight
-            document.querySelectorAll(".modal-filter-chip").forEach((c) => {
-                c.classList.remove("bg-gray-900", "text-white");
-                c.classList.add("bg-gray-100");
-            });
-            chip.classList.remove("bg-gray-100");
-            chip.classList.add("bg-gray-900", "text-white");
-
-            renderModalShop();
-        });
-    });
+  });
 }
 
-// ---- LOAD TEAM / BUDGET FROM SERVER ----
+// ---------- LOAD TEAM / BUDGET ----------
 async function syncBudgetFromHistory() {
-    try {
-        const hist = await TeamService.getUserHistory(currentUser.id);
-        if (hist && hist.success && hist.user && hist.user.budget_remaining != null) {
-            setBudgetDisplay(hist.user.budget_remaining);
-            return;
-        }
-    } catch (err) {
-        console.error("syncBudgetFromHistory error:", err);
+  try {
+    const hist = await TeamService.getUserHistory(currentUser.id);
+    if (hist && hist.success && hist.user && hist.user.budget_remaining != null) {
+      setBudgetDisplay(hist.user.budget_remaining);
+      return;
     }
+  } catch (err) {
+    console.error("syncBudgetFromHistory error:", err);
+  }
 
-    if (currentUser && currentUser.budget_remaining != null) setBudgetDisplay(currentUser.budget_remaining);
-    else setBudgetDisplay(100);
+  if (currentUser && currentUser.budget_remaining != null) setBudgetDisplay(currentUser.budget_remaining);
+  else setBudgetDisplay(100);
 }
 
 async function initTeamForCurrentWeek() {
-    resetSelectedUI();
+  resetSelectedUI();
 
-    try {
-        const teamRes = await TeamService.getTeam(currentUser.id, CURRENT_WEEK);
+  try {
+    const teamRes = await TeamService.getTeam(currentUser.id, CURRENT_WEEK);
 
-        if (teamRes && teamRes.success && teamRes.team) {
-            const team = teamRes.team;
+    if (teamRes && teamRes.success && teamRes.team) {
+      const team = teamRes.team;
 
-            existingTeamId = team.team_id || team.id || null;
-            if (saveBtn) saveBtn.textContent = "Update My Team";
+      existingTeamId = team.team_id || team.id || null;
+      if (saveBtn) saveBtn.textContent = "Update My Team";
 
-            hydrateSelectedFromTeam(team);
+      hydrateSelectedFromTeam(team);
 
-            if (team.budget_remaining != null) setBudgetDisplay(team.budget_remaining);
-            else await syncBudgetFromHistory();
-        } else {
-            existingTeamId = null;
-            resetSelectedUI();
-            if (saveBtn) saveBtn.textContent = "Buy My Team";
-            await syncBudgetFromHistory();
-        }
-    } catch (err) {
-        console.error("initTeamForCurrentWeek error:", err);
-        existingTeamId = null;
-        resetSelectedUI();
-        if (saveBtn) saveBtn.textContent = "Buy My Team";
-        await syncBudgetFromHistory();
+      if (team.budget_remaining != null) setBudgetDisplay(team.budget_remaining);
+      else await syncBudgetFromHistory();
+    } else {
+      existingTeamId = null;
+      resetSelectedUI();
+      if (saveBtn) saveBtn.textContent = "Buy My Team";
+      await syncBudgetFromHistory();
     }
+  } catch (err) {
+    console.error("initTeamForCurrentWeek error:", err);
+    existingTeamId = null;
+    resetSelectedUI();
+    if (saveBtn) saveBtn.textContent = "Buy My Team";
+    await syncBudgetFromHistory();
+  }
 }
 
 function hydrateSelectedFromTeam(team) {
-    resetSelectedUI();
+  resetSelectedUI();
 
-    if (Array.isArray(team.players)) {
-        team.players.forEach((p) => {
-            const pos = (p.position || "").toUpperCase();
-            if (!pos) return;
+  if (Array.isArray(team.players)) {
+    team.players.forEach((p) => {
+      const pos = (p.position || "").toUpperCase();
+      if (!pos) return;
 
-            if (!selected[pos]) {
-                selected[pos] = p;
+      if (!selected[pos]) {
+        selected[pos] = p;
 
-                // apply color from DB team name
-                applyTeamColorToSlot(pos, p.team);
+        applyTeamColorToSlot(pos, p.team);
 
-                const label = el(`pos-${pos}-name`);
-                if (label) {
-                    label.textContent = p.name || `Player #${p.id}`;
-                    label.classList.add("cursor-pointer", "underline");
-                    label.onclick = () => {
-                        selected.CAPTAIN = p.id;
-                        alert(`${p.name} set as Captain`);
-                    };
-                }
-            }
+        const label = el(`pos-${pos}-name`);
+        if (label) {
+          label.textContent = p.name || `Player #${p.id}`;
+          label.classList.remove("cursor-pointer", "underline");
+          label.onclick = null; // captain via modal only
+        }
+      }
 
-            if (p.is_captain == 1) selected.CAPTAIN = p.id;
-        });
-    }
+      if (p.is_captain == 1) selected.CAPTAIN = p.id;
+    });
+  }
 
-    if (team.coach) {
-        selected.COACH = team.coach;
-        const label = el("pos-COACH-name");
-        if (label) label.textContent = team.coach.name || "Coach";
+  if (team.coach) {
+    selected.COACH = team.coach;
+    const label = el("pos-COACH-name");
+    if (label) label.textContent = team.coach.name || "Coach";
+    applyTeamColorToSlot("COACH", team.coach.team);
+  }
 
-        applyTeamColorToSlot("COACH", team.coach.team);
-    }
-
-<<<<<<< HEAD
   computeSelectedTeamWorth();
   renderMyTeamList();
-
-=======
-    computeSelectedTeamWorth();
->>>>>>> 42de0511ce72d7defbb12deab0e65acbf1f8e8b6
 }
 
-// ---- MODAL SHOP LOGIC ----
+// ---------- MODAL SHOP ----------
 async function openModal(position) {
-    activePosition = position;
-    activeChipFilter = "ALL";
+  activePosition = position;
+  activeChipFilter = "ALL";
 
-    // reset chips highlight
-    document.querySelectorAll(".modal-filter-chip").forEach((c) => {
-        c.classList.remove("bg-gray-900", "text-white");
-        c.classList.add("bg-gray-100");
-    });
-    const firstChip = document.querySelector('.modal-filter-chip[data-filter="ALL"]');
-    if (firstChip) {
-        firstChip.classList.remove("bg-gray-100");
-        firstChip.classList.add("bg-gray-900", "text-white");
+  document.querySelectorAll(".modal-filter-chip").forEach((c) => {
+    c.classList.remove("bg-gray-900", "text-white");
+    c.classList.add("bg-gray-100");
+  });
+  const firstChip = document.querySelector('.modal-filter-chip[data-filter="ALL"]');
+  if (firstChip) {
+    firstChip.classList.remove("bg-gray-100");
+    firstChip.classList.add("bg-gray-900", "text-white");
+  }
+
+  if (modalTitle) modalTitle.textContent = position === "COACH" ? "Select Coach" : `Select ${position}`;
+  if (modalSubtitle) modalSubtitle.textContent = "Browse & pick your player";
+  if (modalSearch) modalSearch.value = "";
+
+  modalList.innerHTML = shopSkeleton();
+  modal.classList.remove("hidden");
+
+  try {
+    if (position === "COACH") {
+      const res = await CoachService.getAll();
+      modalItemsRaw = res.coaches || [];
+    } else {
+      const res = await PlayerService.getAllPlayers({ position });
+      modalItemsRaw = res.players || [];
     }
-
-    if (modalTitle) modalTitle.textContent = position === "COACH" ? "Select Coach" : `Select ${position}`;
-    if (modalSubtitle) modalSubtitle.textContent = "Browse & pick your player";
-    if (modalSearch) modalSearch.value = "";
-
-    modalList.innerHTML = shopSkeleton();
-    modal.classList.remove("hidden");
-
-    try {
-        if (position === "COACH") {
-            const res = await CoachService.getAll();
-            modalItemsRaw = res.coaches || [];
-        } else {
-            const res = await PlayerService.getAllPlayers({ position });
-            modalItemsRaw = res.players || [];
-        }
-        renderModalShop();
-    } catch (err) {
-        console.error("openModal error:", err);
-        modalList.innerHTML = `<div class="p-3 text-sm text-red-600 bg-white border rounded-xl">
-      Error loading data.
-    </div>`;
-    }
+    renderModalShop();
+  } catch (err) {
+    console.error("openModal error:", err);
+    modalList.innerHTML = `<div class="p-3 text-sm text-red-600 bg-white border rounded-xl">Error loading data.</div>`;
+  }
 }
 
 function shopSkeleton() {
-    return `
+  return `
     <div class="bg-white border rounded-xl p-3 animate-pulse h-16"></div>
     <div class="bg-white border rounded-xl p-3 animate-pulse h-16"></div>
     <div class="bg-white border rounded-xl p-3 animate-pulse h-16"></div>
@@ -601,192 +575,180 @@ function shopSkeleton() {
 }
 
 function getSearchText() {
-    return (modalSearch ? .value || "").trim().toLowerCase();
+  return (modalSearch?.value || "").trim().toLowerCase();
 }
 
 function applyFilters(items) {
-    const q = getSearchText();
-    let out = items.slice();
+  const q = getSearchText();
+  let out = items.slice();
 
-    // Search filter
-    if (q) {
-        out = out.filter((it) => {
-            const name = (it.name || "").toLowerCase();
-            const team = (it.team || "").toLowerCase();
-            const pos = (it.position || "").toLowerCase();
-            return name.includes(q) || team.includes(q) || pos.includes(q);
-        });
+  if (q) {
+    out = out.filter((it) => {
+      const name = (it.name || "").toLowerCase();
+      const team = (it.team || "").toLowerCase();
+      const pos  = (it.position || "").toLowerCase();
+      return name.includes(q) || team.includes(q) || pos.includes(q);
+    });
+  }
+
+  if (activeChipFilter !== "ALL") {
+    const prices = out
+      .map((x) => Number(x.price))
+      .filter((n) => Number.isFinite(n))
+      .sort((a, b) => a - b);
+
+    if (prices.length) {
+      const idx40 = Math.floor(prices.length * 0.4);
+      const idx60 = Math.floor(prices.length * 0.6);
+      const p40 = prices[idx40] ?? prices[0];
+      const p60 = prices[idx60] ?? prices[prices.length - 1];
+
+      if (activeChipFilter === "CHEAP") out = out.filter((x) => Number(x.price) <= p40);
+      if (activeChipFilter === "EXPENSIVE") out = out.filter((x) => Number(x.price) >= p60);
     }
+  }
 
-    // Chip filter by price
-    if (activeChipFilter !== "ALL") {
-        const prices = out
-            .map((x) => Number(x.price))
-            .filter((n) => Number.isFinite(n))
-            .sort((a, b) => a - b);
-
-        if (prices.length) {
-            const idx40 = Math.floor(prices.length * 0.4);
-            const idx60 = Math.floor(prices.length * 0.6);
-            const p40 = prices[idx40] ? ? prices[0];
-            const p60 = prices[idx60] ? ? prices[prices.length - 1];
-
-            if (activeChipFilter === "CHEAP") out = out.filter((x) => Number(x.price) <= p40);
-            if (activeChipFilter === "EXPENSIVE") out = out.filter((x) => Number(x.price) >= p60);
-        }
-    }
-
-    // sort by price asc
-    out.sort((a, b) => Number(a.price) - Number(b.price));
-    return out;
+  out.sort((a, b) => Number(a.price) - Number(b.price));
+  return out;
 }
 
 function renderModalShop() {
-    const items = applyFilters(modalItemsRaw);
-    modalList.innerHTML = "";
+  const items = applyFilters(modalItemsRaw);
+  modalList.innerHTML = "";
 
-    if (!items.length) {
-        modalList.innerHTML = `
-      <div class="bg-white border rounded-xl p-4 text-sm text-gray-600">
-        No results. Try another search.
-      </div>`;
-        return;
-    }
+  if (!items.length) {
+    modalList.innerHTML = `<div class="bg-white border rounded-xl p-4 text-sm text-gray-600">No results. Try another search.</div>`;
+    return;
+  }
 
-    items.forEach((item) => {
-        const card = document.createElement("div");
-        card.className =
-            "bg-white border rounded-xl p-3 flex items-center justify-between hover:shadow-sm transition";
+  items.forEach((item) => {
+    const card = document.createElement("div");
+    card.className = "bg-white border rounded-xl p-3 flex items-center justify-between hover:shadow-sm transition";
 
-        // left
-        const left = document.createElement("div");
-        left.className = "min-w-0";
+    const left = document.createElement("div");
+    left.className = "min-w-0";
 
-        const title = document.createElement("div");
-        title.className = "font-bold text-sm text-gray-900 truncate";
-        title.textContent = item.name || "Unknown";
+    const title = document.createElement("div");
+    title.className = "font-bold text-sm text-gray-900 truncate";
+    title.textContent = item.name || "Unknown";
 
-        const meta = document.createElement("div");
-        meta.className = "text-[11px] text-gray-500";
+    const meta = document.createElement("div");
+    meta.className = "text-[11px] text-gray-500";
+    meta.textContent = activePosition === "COACH"
+      ? `${item.team || "—"} • Coach`
+      : `${item.team || "—"} • ${(item.position || activePosition || "—").toUpperCase()}`;
 
-        if (activePosition === "COACH") {
-            meta.textContent = `${item.team || "—"} • Coach`;
-        } else {
-            meta.textContent = `${item.team || "—"} • ${(item.position || activePosition || "—").toUpperCase()}`;
-        }
+    const pillColor = teamToColor(item.team);
+    const pill = document.createElement("span");
+    pill.className = "inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full";
+    pill.textContent = item.team || "—";
+    pill.style.backgroundColor = pillColor ? pillColor : "#f3f4f6";
+    pill.style.color = pillColor ? "white" : "#374151";
 
-        // optional team color pill
-        const pillColor = teamToColor(item.team);
-        const pill = document.createElement("span");
-        pill.className = "inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full";
-        pill.textContent = item.team || "—";
-        pill.style.backgroundColor = pillColor ? pillColor : "#f3f4f6";
-        pill.style.color = pillColor ? "white" : "#374151";
+    left.appendChild(title);
+    left.appendChild(meta);
+    left.appendChild(pill);
 
-        left.appendChild(title);
-        left.appendChild(meta);
-        left.appendChild(pill);
+    const right = document.createElement("div");
+    right.className = "flex items-center gap-3";
 
-        // right
-        const right = document.createElement("div");
-        right.className = "flex items-center gap-3";
+    const price = document.createElement("div");
+    price.className = "font-mono text-sm font-bold text-gray-900";
+    price.textContent = `$${Number(item.price || 0).toFixed(1)}M`;
 
-        const price = document.createElement("div");
-        price.className = "font-mono text-sm font-bold text-gray-900";
-        price.textContent = `$${Number(item.price || 0).toFixed(1)}M`;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn-primary text-xs px-3 py-2";
+    btn.textContent = "Select";
 
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "btn-primary text-xs px-3 py-2";
-        btn.textContent = "Select";
-
-        btn.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            selectItem(activePosition, item);
-            modal.classList.add("hidden");
-        });
-
-        right.appendChild(price);
-        right.appendChild(btn);
-
-        card.appendChild(left);
-        card.appendChild(right);
-
-        modalList.appendChild(card);
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      selectItem(activePosition, item);
+      modal.classList.add("hidden");
+      uiToastSafe("Selected ✅");
     });
+
+    right.appendChild(price);
+    right.appendChild(btn);
+
+    card.appendChild(left);
+    card.appendChild(right);
+    modalList.appendChild(card);
+  });
 }
 
-// Save selected player/coach into UI and memory
 function selectItem(position, item) {
-    selected[position] = item;
+  selected[position] = item;
 
-    const label = el(`pos-${position}-name`);
-    if (!label) return;
+  const label = el(`pos-${position}-name`);
+  if (!label) return;
 
-    label.textContent = item.name;
+  label.textContent = item.name;
 
-    if (position !== "COACH") {
-        label.classList.add("cursor-pointer", "underline");
-        label.onclick = () => {
-            selected.CAPTAIN = item.id;
-            alert(`${item.name} set as Captain`);
-        };
-    } else {
-        label.classList.remove("cursor-pointer", "underline");
-        label.onclick = null;
-    }
+  // captain via modal only
+  label.classList.remove("cursor-pointer", "underline");
+  label.onclick = null;
 
-    // apply circle color
-    applyTeamColorToSlot(position, item.team);
+  applyTeamColorToSlot(position, item.team);
 
-<<<<<<< HEAD
   computeSelectedTeamWorth();
   renderMyTeamList();
-
-=======
-    computeSelectedTeamWorth();
->>>>>>> 42de0511ce72d7defbb12deab0e65acbf1f8e8b6
 }
 
-// ---- SAVE (CREATE / OVERWRITE) TEAM ----
+// ---------- SAVE TEAM ----------
 async function saveTeam() {
-<<<<<<< HEAD
   if (!currentUser) {
-    showToast("Login required", "You must log in to save a team.");
+    uiAlertSafe({
+      type: "warn",
+      titleText: "Login required",
+      subText: "Session expired",
+      message: "Please log in again."
+    });
     window.location.href = "login.html";
     return;
   }
 
-  // 1) Validate all positions
+  // validate all positions
   const required = ["PG", "SG", "SF", "PF", "C", "COACH"];
   for (const r of required) {
     if (!selected[r]) {
-      showToast("Missing selection", `Please select a ${r}.`);
+      uiAlertSafe({
+        type: "warn",
+        titleText: "Missing selection",
+        subText: "Team incomplete",
+        message: `Please select a ${r}.`
+      });
       return;
     }
   }
 
-  // 2) Captain must be selected using the captain UI
+  // captain required
   if (!selected.CAPTAIN) {
-    showToast("Captain required", "Please choose a captain using the Captain button.");
+    uiAlertSafe({
+      type: "warn",
+      titleText: "Captain required",
+      subText: "One more step",
+      message: "Please choose a captain using the Captain button."
+    });
     return;
   }
 
-  // 3) Budget check (client-side)
-  const totalCost = computeSelectedTeamWorth(); // returns number
+  // budget check
+  const totalCost = computeSelectedTeamWorth();
   const budgetText = document.getElementById("budget-display")?.textContent ?? "100";
   const currentBudget = Number(budgetText);
 
   if (Number.isFinite(currentBudget) && totalCost > currentBudget) {
-    showToast(
-      "Not enough budget",
-      `Your team costs $${totalCost.toFixed(1)}M but your budget is $${currentBudget.toFixed(1)}M.`
-    );
+    uiAlertSafe({
+      type: "error",
+      titleText: "Not enough budget",
+      subText: "Budget limit",
+      message: `Your team costs $${totalCost.toFixed(1)}M but your budget is $${currentBudget.toFixed(1)}M.`
+    });
     return;
   }
 
-  // 4) Build payload
   const players = [
     selected.PG.id,
     selected.SG.id,
@@ -805,11 +767,16 @@ async function saveTeam() {
   };
 
   try {
-    // 5) Overwrite if exists
+    // If team exists: ask confirmation to overwrite (NOT sell wording)
     if (existingTeamId) {
-      const ok = confirm(
-        "You already created a team for this week. Overwrite it with the new selection?"
-      );
+      const ok = await uiConfirmSafe({
+        titleText: "Update this week’s team?",
+        subText: `Week ${CURRENT_WEEK}`,
+        message: "This will replace your current team for this week with the new selection.",
+        okText: "Yes, Update",
+        cancelText: "Cancel"
+      });
+
       if (!ok) return;
 
       const del = await TeamService.deleteTeam({
@@ -818,128 +785,104 @@ async function saveTeam() {
       });
 
       if (del && del.success === false) {
-        showToast("Could not overwrite", del.message || "Failed to delete existing team.");
+        uiAlertSafe({
+          type: "error",
+          titleText: "Update failed",
+          subText: "Could not replace team",
+          message: del.message || "Failed to delete existing team."
+        });
         return;
       }
 
       existingTeamId = null;
     }
 
-    // 6) Create team
     const res = await TeamService.createTeam(payload);
 
     if (!res || !res.success) {
-      // Common budget-related backend messages
       const msg = (res?.message || "").toLowerCase();
-      if (msg.includes("budget") || msg.includes("not enough") || msg.includes("negative")) {
-        showToast("Budget error", res.message || "Not enough budget to buy this team.");
-      } else {
-        showToast("Team save failed", res?.message || "Please try again.");
-      }
+      uiAlertSafe({
+        type: "error",
+        titleText: msg.includes("budget") ? "Budget error" : "Team save failed",
+        subText: "Server response",
+        message: res?.message || "Please try again."
+      });
       return;
     }
 
-    // 7) Refresh UI from server (budget, team, etc.)
     await initTeamForCurrentWeek();
-    renderMyTeamList?.(); // if you added it; safe optional
-
+    uiToastSafe("Team saved ✅");
     showToast("Saved", "Team saved successfully!", "success");
   } catch (err) {
     console.error("saveTeam error:", err);
-    showToast("Unexpected error", err?.message || "Unexpected error while saving team.");
+    uiAlertSafe({
+      type: "error",
+      titleText: "Unexpected error",
+      subText: "Save team",
+      message: err?.message || "Unexpected error while saving team."
+    });
   }
-=======
-    if (!currentUser) {
-        alert("You must log in.");
-        return;
-    }
-
-    const required = ["PG", "SG", "SF", "PF", "C", "COACH"];
-    for (const r of required) {
-        if (!selected[r]) {
-            alert(`Please select a ${r}.`);
-            return;
-        }
-    }
-
-    if (!selected.CAPTAIN) {
-        alert("Select captain by clicking a player name.");
-        return;
-    }
-
-    const players = [
-        selected.PG.id,
-        selected.SG.id,
-        selected.SF.id,
-        selected.PF.id,
-        selected.C.id
-    ];
-
-    const payload = {
-        user_id: currentUser.id,
-        week_number: CURRENT_WEEK,
-        team_name: `${currentUser.username} Team`,
-        players,
-        coach_id: selected.COACH.id,
-        captain_id: selected.CAPTAIN
-    };
-
-    try {
-        if (existingTeamId) {
-            const ok = confirm("You already created a team for this week. Overwrite it with the new selection?");
-            if (!ok) return;
-
-            await TeamService.deleteTeam({ user_id: currentUser.id, week_number: CURRENT_WEEK });
-            existingTeamId = null;
-        }
-
-        const res = await TeamService.createTeam(payload);
-
-        if (!res || !res.success) {
-            alert(res ? .message || "Team save failed.");
-            return;
-        }
-
-        await initTeamForCurrentWeek();
-        alert("Team saved successfully!");
-    } catch (err) {
-        console.error("saveTeam error:", err);
-        alert("Unexpected error while saving team.");
-    }
->>>>>>> 42de0511ce72d7defbb12deab0e65acbf1f8e8b6
 }
 
-// ---- DELETE TEAM (SELL TEAM) ----
+// ---------- SELL TEAM ----------
 async function handleDeleteTeam() {
-    if (!currentUser) return;
+  if (!currentUser) return;
 
-    if (!existingTeamId) {
-        alert("You don't have a team for this week to sell.");
-        return;
+  if (!existingTeamId) {
+    uiAlertSafe({
+      type: "warn",
+      titleText: "No team to sell",
+      subText: `Week ${CURRENT_WEEK}`,
+      message: "You don’t have a team for this week."
+    });
+    return;
+  }
+
+  const ok = await uiConfirmSafe({
+    titleText: "Sell your team?",
+    subText: `Week ${CURRENT_WEEK}`,
+    message: "Are you sure you want to sell your team for this week? Your budget will be refunded.",
+    okText: "Yes, Sell",
+    cancelText: "Cancel"
+  });
+
+  if (!ok) return;
+
+  try {
+    const res = await TeamService.deleteTeam({ user_id: currentUser.id, week_number: CURRENT_WEEK });
+
+    if (!res || !res.success) {
+      uiAlertSafe({
+        type: "error",
+        titleText: "Sell failed",
+        subText: "Server response",
+        message: res?.message || "Failed to sell team."
+      });
+      return;
     }
 
-    const ok = confirm("Are you sure you want to sell your team for this week? Your budget will be refunded.");
-    if (!ok) return;
+    existingTeamId = null;
+    resetSelectedUI();
 
-    try {
-        const res = await TeamService.deleteTeam({ user_id: currentUser.id, week_number: CURRENT_WEEK });
+    if (res.budget_remaining != null) setBudgetDisplay(res.budget_remaining);
+    else await syncBudgetFromHistory();
 
-        if (!res || !res.success) {
-            alert(res ? .message || "Failed to sell team.");
-            return;
-        }
+    if (saveBtn) saveBtn.textContent = "Buy My Team";
 
-        existingTeamId = null;
-        resetSelectedUI();
-
-        if (res.budget_remaining != null) setBudgetDisplay(res.budget_remaining);
-        else await syncBudgetFromHistory();
-
-        if (saveBtn) saveBtn.textContent = "Buy My Team";
-
-        alert("Team sold. You can build a new one now.");
-    } catch (err) {
-        console.error("Delete team error:", err);
-        alert("Unexpected error while deleting team.");
-    }
+    uiToastSafe("Team sold 💸");
+    uiAlertSafe({
+      type: "success",
+      titleText: "Team sold",
+      subText: `Week ${CURRENT_WEEK}`,
+      message: "Your team was sold successfully. You can build a new one now."
+    });
+  } catch (err) {
+    console.error("Delete team error:", err);
+    uiAlertSafe({
+      type: "error",
+      titleText: "Unexpected error",
+      subText: "Sell team",
+      message: err?.message || "Unexpected error while deleting team."
+    });
+  }
 }

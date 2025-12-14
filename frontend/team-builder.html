@@ -331,6 +331,153 @@
       <i class="fas fa-book"></i><span>Rules</span>
     </a>
   </nav>
+  <!-- NICE ALERT MODAL -->
+  <div id="ui-alert" class="hidden fixed inset-0 bg-black/50 z-[999] flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
+      <div class="px-5 py-4 flex items-center gap-3 bg-gray-50 border-b">
+        <div id="ui-alert-icon" class="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-200 text-gray-700">
+          <i class="fas fa-circle-info"></i>
+        </div>
+        <div class="min-w-0">
+          <div id="ui-alert-title" class="font-black text-gray-900">Message</div>
+          <div id="ui-alert-sub" class="text-xs text-gray-500">Info</div>
+        </div>
+        <button id="ui-alert-close-x" type="button"
+          class="ml-auto w-9 h-9 rounded-full bg-white border hover:bg-gray-50 flex items-center justify-center">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+      <div class="px-5 py-4">
+        <p id="ui-alert-msg" class="text-sm text-gray-700"></p>
+      </div>
+      <div class="px-5 py-4 bg-gray-50 border-t flex justify-end gap-2">
+        <button id="ui-alert-close" type="button" class="btn-primary text-sm px-4 py-2">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NICE CONFIRM MODAL -->
+  <div id="ui-confirm" class="hidden fixed inset-0 bg-black/50 z-[999] flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
+      <div class="px-5 py-4 flex items-center gap-3 bg-gray-50 border-b">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-yellow-100 text-yellow-700">
+          <i class="fas fa-circle-exclamation"></i>
+        </div>
+        <div class="min-w-0">
+          <div id="ui-confirm-title" class="font-black text-gray-900">Confirm</div>
+          <div id="ui-confirm-sub" class="text-xs text-gray-500">Please confirm</div>
+        </div>
+        <button id="ui-confirm-close-x" type="button"
+          class="ml-auto w-9 h-9 rounded-full bg-white border hover:bg-gray-50 flex items-center justify-center">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+      <div class="px-5 py-4">
+        <p id="ui-confirm-msg" class="text-sm text-gray-700"></p>
+      </div>
+      <div class="px-5 py-4 bg-gray-50 border-t flex justify-end gap-2">
+        <button id="ui-confirm-cancel" type="button" class="btn-secondary text-sm px-4 py-2">Cancel</button>
+        <button id="ui-confirm-ok" type="button" class="btn-primary text-sm px-4 py-2">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="ui-toast" class="hidden fixed bottom-6 right-6 z-[999]">
+    <div class="bg-gray-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
+      <i class="fas fa-check-circle"></i>
+      <span id="ui-toast-msg">Done</span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // ---------- ALERT ----------
+      const aModal = document.getElementById("ui-alert");
+      const aCloseBtn = document.getElementById("ui-alert-close");
+      const aCloseX = document.getElementById("ui-alert-close-x");
+      const aTitle = document.getElementById("ui-alert-title");
+      const aSub = document.getElementById("ui-alert-sub");
+      const aMsg = document.getElementById("ui-alert-msg");
+      const aIconBox = document.getElementById("ui-alert-icon");
+
+      window.uiAlert = function ({ type = "info", titleText = "Message", subText = "", message = "" }) {
+        aTitle.textContent = titleText;
+        aSub.textContent = subText;
+        aMsg.textContent = message;
+
+        const map = {
+          success: { bg: "bg-green-100", txt: "text-green-700", ico: "fa-check" },
+          error:   { bg: "bg-red-100",   txt: "text-red-700",   ico: "fa-triangle-exclamation" },
+          warn:    { bg: "bg-yellow-100",txt: "text-yellow-700",ico: "fa-circle-exclamation" },
+          info:    { bg: "bg-blue-100",  txt: "text-blue-700",  ico: "fa-circle-info" },
+        };
+        const v = map[type] || map.info;
+
+        aIconBox.className = `w-10 h-10 rounded-xl flex items-center justify-center ${v.bg} ${v.txt}`;
+        aIconBox.innerHTML = `<i class="fas ${v.ico}"></i>`;
+
+        aModal.classList.remove("hidden");
+      };
+
+      function hideAlert() { aModal.classList.add("hidden"); }
+      aCloseBtn?.addEventListener("click", hideAlert);
+      aCloseX?.addEventListener("click", hideAlert);
+      aModal?.addEventListener("click", (e) => { if (e.target === aModal) hideAlert(); });
+
+      // ---------- CONFIRM ----------
+      const cModal = document.getElementById("ui-confirm");
+      const cTitle = document.getElementById("ui-confirm-title");
+      const cSub = document.getElementById("ui-confirm-sub");
+      const cMsg = document.getElementById("ui-confirm-msg");
+      const cOk = document.getElementById("ui-confirm-ok");
+      const cCancel = document.getElementById("ui-confirm-cancel");
+      const cCloseX = document.getElementById("ui-confirm-close-x");
+
+      window.uiConfirm = function ({
+        titleText = "Confirm",
+        subText = "",
+        message = "Are you sure?",
+        okText = "Confirm",
+        cancelText = "Cancel"
+      } = {}) {
+        return new Promise((resolve) => {
+          cTitle.textContent = titleText;
+          cSub.textContent = subText;
+          cMsg.textContent = message;
+          cOk.textContent = okText;
+          cCancel.textContent = cancelText;
+
+          cModal.classList.remove("hidden");
+
+          const cleanup = () => {
+            cModal.classList.add("hidden");
+            cOk.onclick = null;
+            cCancel.onclick = null;
+            cCloseX.onclick = null;
+            cModal.onclick = null;
+          };
+
+          cOk.onclick = () => { cleanup(); resolve(true); };
+          cCancel.onclick = () => { cleanup(); resolve(false); };
+          cCloseX.onclick = () => { cleanup(); resolve(false); };
+          cModal.onclick = (e) => { if (e.target === cModal) { cleanup(); resolve(false); } };
+        });
+      };
+
+      // ---------- TOAST ----------
+      const toast = document.getElementById("ui-toast");
+      const toastMsg = document.getElementById("ui-toast-msg");
+      let toastTimer = null;
+
+      window.uiToast = function (message) {
+        toastMsg.textContent = message || "Done";
+        toast.classList.remove("hidden");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.add("hidden"), 2200);
+      };
+    })();
+  </script>
 
   <script type="module" src="js/team-builder.js"></script>
 </body>

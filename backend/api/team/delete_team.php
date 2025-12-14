@@ -10,6 +10,15 @@ if (!$user_id || !$week_number) {
     echo json_encode(["success" => false, "message" => "user_id and week_number are required."]);
     exit;
 }
+require_once "../admin/week_lock_helpers.php";
+
+if (is_week_locked($conn, (int)$week_number)) {
+  echo json_encode([
+    "success" => false,
+    "message" => "Teams are locked for this week. You can’t sell a team right now."
+  ]);
+  exit;
+}
 
 // -------------------------------------------------------
 // 1) GET THE TEAM FOR THIS USER + WEEK

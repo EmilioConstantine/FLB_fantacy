@@ -9,6 +9,15 @@ if (!$week_number) {
     echo json_encode(["success" => false, "message" => "week_number is required."]);
     exit;
 }
+require_once "../admin/week_lock_helpers.php";
+
+if (is_week_locked($conn, (int)$week_number)) {
+  echo json_encode([
+    "success" => false,
+    "message" => "Teams are locked for this week. You can’t buy/change a team right now."
+  ]);
+  exit;
+}
 
 // ----------------------------------------
 // 1) PREVENT DUPLICATE CALCULATION

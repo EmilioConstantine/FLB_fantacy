@@ -1,6 +1,8 @@
 // frontend/js/leaderboard.js
 import * as AuthMod from "../../backend/scr/api/authService.js";
 import * as LbMod from "../../backend/scr/api/leaderboardService.js";
+let leaderboardMode = "all"; // "all" | "week"
+
 
 const AuthService = AuthMod.AuthService || AuthMod.default || AuthMod;
 const LeaderboardService =
@@ -10,6 +12,36 @@ function firstLetter(name) {
   if (!name) return "?";
   return name.trim().charAt(0).toUpperCase();
 }
+document.getElementById("btn-mode-all")?.addEventListener("click", () => {
+  leaderboardMode = "all";
+  setModeUI();
+  loadLeaderboard();
+});
+
+document.getElementById("btn-mode-week")?.addEventListener("click", () => {
+  leaderboardMode = "week";
+  setModeUI();
+  loadLeaderboard();
+});
+function setModeUI() {
+  const btnAll = document.getElementById("btn-mode-all");
+  const btnWeek = document.getElementById("btn-mode-week");
+  const picker = document.getElementById("week-picker");
+
+  if (leaderboardMode === "all") {
+    btnAll.className = "px-4 py-2 text-xs rounded-xl font-bold bg-gray-900 text-white";
+    btnWeek.className = "px-4 py-2 text-xs rounded-xl font-bold bg-gray-100 text-gray-700";
+    picker.classList.add("hidden");
+  } else {
+    btnWeek.className = "px-4 py-2 text-xs rounded-xl font-bold bg-gray-900 text-white";
+    btnAll.className = "px-4 py-2 text-xs rounded-xl font-bold bg-gray-100 text-gray-700";
+    picker.classList.remove("hidden");
+  }
+}
+
+
+document.getElementById("lb-week")?.addEventListener("change", loadLeaderboard);
+
 
 function renderPodium(entries) {
   const slots = [
@@ -106,25 +138,37 @@ function renderList(entries, currentUserId) {
   }
 }
 
-async function init() {
+async function loadLeaderboard() {
   try {
-    const currentUser = AuthService.getCurrentUser
-      ? AuthService.getCurrentUser()
-      : null;
+    const currentUser = AuthService.getCurrentUser?.() || null;
+    let entries = [];
 
-    const res = await LeaderboardService.getLeaderboard({ details: false });
-    if (!res.success) {
-      console.error("Leaderboard error", res);
-      return;
+    if (leaderboardMode === "week") {
+      const week = parseInt(document.getElementById("lb-week")?.value || "1", 10);
+      const res = await LeaderboardService.getWeekLeaderboard(week);
+
+      if (!res?.success) return;
+
+      entries = (res.leaderboard || []).map(r => ({
+        user_id: r.user_id,
+        username: r.username,
+        total_points: r.week_points
+      }));
+    } else {
+      const res = await LeaderboardService.getLeaderboard();
+      if (!res?.success) return;
+      entries = res.leaderboard || [];
     }
 
-    const entries = res.leaderboard || [];
     renderPodium(entries.slice(0, 3));
-
     renderList(entries, currentUser ? currentUser.id : null);
   } catch (err) {
-    console.error("Leaderboard exception", err);
+    console.error("Leaderboard load error", err);
   }
 }
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", () => {
+  setModeUI();
+  loadLeaderboard();
+});
+

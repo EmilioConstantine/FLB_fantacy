@@ -28,6 +28,31 @@
     </header>
 
     <main class="max-w-4xl mx-auto px-4 py-6 pb-24">
+      <!-- LEADERBOARD MODE SWITCH -->
+<section class="flex items-center justify-between max-w-3xl mx-auto mb-4 gap-3">
+  <div class="flex gap-2">
+    <button id="btn-mode-all"
+      class="px-4 py-2 text-xs rounded-xl font-bold bg-gray-900 text-white">
+      All-Time
+    </button>
+    <button id="btn-mode-week"
+      class="px-4 py-2 text-xs rounded-xl font-bold bg-gray-100 text-gray-700">
+      This Week
+    </button>
+  </div>
+
+  <div id="week-picker" class="hidden flex items-center gap-2 text-sm">
+    <span class="font-semibold text-gray-600">Week</span>
+    <input
+      id="lb-week"
+      type="number"
+      min="1"
+      value="1"
+      class="border rounded-xl px-3 py-1 w-20 text-sm"
+    />
+  </div>
+</section>
+
       <!-- PODIUM -->
       <section class="flex items-end justify-center gap-4 mb-10 mt-4">
         <!-- 2nd place -->

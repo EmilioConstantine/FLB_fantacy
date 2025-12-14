@@ -11,6 +11,16 @@ $team_name   = isset($data['team_name']) ? trim($data['team_name']) : '';
 $players     = isset($data['players']) && is_array($data['players']) ? $data['players'] : [];
 $coach_id    = isset($data['coach_id']) ? (int)$data['coach_id'] : 0;
 $captain_id  = isset($data['captain_id']) ? (int)$data['captain_id'] : 0;
+require_once "../admin/week_lock_helpers.php";
+
+if (is_week_locked($conn, (int)$week_number)) {
+  echo json_encode([
+    "success" => false,
+    "message" => "Teams are locked for this week. You can’t buy/change a team right now."
+  ]);
+  exit;
+}
+
 
 // Basic validation
 if ($user_id <= 0 || $week_number <= 0 || $team_name === '' || $coach_id <= 0 || $captain_id <= 0 || count($players) === 0) {
