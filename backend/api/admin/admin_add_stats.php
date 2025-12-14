@@ -3,6 +3,10 @@
 
 require_once "../../config/db.php";
 session_start();
+
+header("Content-Type: application/json");
+
+// Admin guard
 if (empty($_SESSION["is_admin"])) {
     echo json_encode([
         "success" => false,
@@ -11,10 +15,6 @@ if (empty($_SESSION["is_admin"])) {
     exit;
 }
 
-
-// We already send Content-Type & CORS from db.php, but it's ok to ensure JSON:
-header("Content-Type: application/json");
-
 // Handle CORS preflight (if browser sends OPTIONS)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // ---------- 0) READ & VALIDATE BODY ----------
-
 $raw  = file_get_contents("php://input");
 $data = json_decode($raw, true);
 
@@ -36,7 +35,7 @@ if (!is_array($data)) {
 }
 
 $week_number = isset($data['week_number']) ? (int)$data['week_number'] : 0;
-$stats       = isset($data['stats']) && is_array($data['stats']) ? $data['stats'] : [];
+$stats       = (isset($data['stats']) && is_array($data['stats'])) ? $data['stats'] : [];
 
 if ($week_number <= 0 || empty($stats)) {
     echo json_encode([
@@ -47,7 +46,6 @@ if ($week_number <= 0 || empty($stats)) {
 }
 
 // ---------- 1) FANTASY FORMULA (PLAYER LEVEL) ----------
-
 function calculate_fantasy_points($s) {
     $points    = isset($s['points'])    ? (int)$s['points']    : 0;
     $rebounds  = isset($s['rebounds'])  ? (int)$s['rebounds']  : 0;
@@ -66,16 +64,27 @@ function calculate_fantasy_points($s) {
     return (int) round($score);
 }
 
-// ---------- 2) SAVE / UPDATE WEEKLY_STATS ----------
-
+// ---------- 2) ALWAYS INSERT INTO WEEKLY_STATS (NO UPDATE) ----------
 $inserted = 0;
-$updated  = 0;
+
+$insertSql = "
+    INSERT INTO weekly_stats
+    (player_id, week_number, match_id, points, rebounds, assists, steals, blocks, turnovers, minutes, fantasy_points)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+";
+
+$ins = $conn->prepare($insertSql);
+if (!$ins) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Prepare failed (insert): " . $conn->error
+    ]);
+    exit;
+}
 
 foreach ($stats as $s) {
     $player_id = isset($s['player_id']) ? (int)$s['player_id'] : 0;
-    if ($player_id <= 0) {
-        continue; // skip invalid
-    }
+    if ($player_id <= 0) continue;
 
     $points    = isset($s['points'])    ? (int)$s['points']    : 0;
     $rebounds  = isset($s['rebounds'])  ? (int)$s['rebounds']  : 0;
@@ -84,118 +93,51 @@ foreach ($stats as $s) {
     $blocks    = isset($s['blocks'])    ? (int)$s['blocks']    : 0;
     $turnovers = isset($s['turnovers']) ? (int)$s['turnovers'] : 0;
     $minutes   = isset($s['minutes'])   ? (int)$s['minutes']   : 0;
-    $match_id  = isset($s['match_id'])  ? (int)$s['match_id']  : null; // optional
+
+    // allow null match_id
+    $match_id = (isset($s['match_id']) && $s['match_id'] !== null && $s['match_id'] !== "")
+        ? (int)$s['match_id']
+        : null;
 
     $fantasy_points = calculate_fantasy_points($s);
 
-    // 2.1) check if row exists for this player & week
-    $checkSql = "SELECT id FROM weekly_stats WHERE player_id = ? AND week_number = ?";
-    $check = $conn->prepare($checkSql);
-    if (!$check) {
-        echo json_encode([
-            "success" => false,
-            "message" => "Prepare failed (check): " . $conn->error
-        ]);
-        exit;
-    }
-    $check->bind_param("ii", $player_id, $week_number);
-    $check->execute();
-    $res      = $check->get_result();
-    $existing = $res->fetch_assoc();
-    $check->close();
+    $ins->bind_param(
+        "iiiiiiiiiii",
+        $player_id,
+        $week_number,
+        $match_id,
+        $points,
+        $rebounds,
+        $assists,
+        $steals,
+        $blocks,
+        $turnovers,
+        $minutes,
+        $fantasy_points
+    );
 
-    if ($existing) {
-        // 2.2) UPDATE existing row
-        $id = (int)$existing['id'];
-
-        $updateSql = "
-            UPDATE weekly_stats
-            SET match_id = ?, points = ?, rebounds = ?, assists = ?, steals = ?,
-                blocks = ?, turnovers = ?, minutes = ?, fantasy_points = ?
-            WHERE id = ?
-        ";
-        $upd = $conn->prepare($updateSql);
-        if (!$upd) {
-            echo json_encode([
-                "success" => false,
-                "message" => "Prepare failed (update): " . $conn->error
-            ]);
-            exit;
-        }
-
-        // 9 fields to set + 1 id  -> 10 ints  -> 'iiiiiiiiii'
-        $upd->bind_param(
-            "iiiiiiiiii",
-            $match_id,
-            $points,
-            $rebounds,
-            $assists,
-            $steals,
-            $blocks,
-            $turnovers,
-            $minutes,
-            $fantasy_points,
-            $id
-        );
-
-        $upd->execute();
-        $upd->close();
-        $updated++;
-    } else {
-        // 2.3) INSERT new row
-        $insertSql = "
-            INSERT INTO weekly_stats
-            (player_id, week_number, match_id, points, rebounds, assists, steals, blocks, turnovers, minutes, fantasy_points)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ";
-        $ins = $conn->prepare($insertSql);
-        if (!$ins) {
-            echo json_encode([
-                "success" => false,
-                "message" => "Prepare failed (insert): " . $conn->error
-            ]);
-            exit;
-        }
-
-        // 11 values -> 11 ints -> 'iiiiiiiiiii'
-        $ins->bind_param(
-            "iiiiiiiiiii",
-            $player_id,
-            $week_number,
-            $match_id,
-            $points,
-            $rebounds,
-            $assists,
-            $steals,
-            $blocks,
-            $turnovers,
-            $minutes,
-            $fantasy_points
-        );
-
-        $ins->execute();
-        $ins->close();
-        $inserted++;
-    }
+    $ins->execute();
+    $inserted++;
 }
 
-// ---------- 3) WEEKLY SCORING (USER LEVEL) ----------
-// This uses weekly_stats + user_team + user_team_members + coaches
-// and writes totals into user_points.
+$ins->close();
 
+// ---------- 3) WEEKLY SCORING (USER LEVEL) ----------
+// Recompute user_points for this week from scratch,
+// using SUM of weekly_stats rows per player/week.
 function recalc_user_points_for_week(mysqli $conn, int $week_number) {
     $info = [
         "teamsFound"    => 0,
         "rowsInserted"  => 0,
     ];
 
-    // 3.1) Clear existing user_points for this week (recompute from scratch)
+    // Clear existing user_points for this week
     $del = $conn->prepare("DELETE FROM user_points WHERE week_number = ?");
     $del->bind_param("i", $week_number);
     $del->execute();
     $del->close();
 
-    // 3.2) get teams for this week
+    // Get teams for this week
     $tsql = "SELECT id, user_id FROM user_team WHERE week_number = ?";
     $tstmt = $conn->prepare($tsql);
     $tstmt->bind_param("i", $week_number);
@@ -203,7 +145,7 @@ function recalc_user_points_for_week(mysqli $conn, int $week_number) {
     $teams_res = $tstmt->get_result();
 
     if ($teams_res->num_rows === 0) {
-        return $info; // no teams for this week
+        return $info;
     }
 
     while ($team = $teams_res->fetch_assoc()) {
@@ -213,7 +155,7 @@ function recalc_user_points_for_week(mysqli $conn, int $week_number) {
 
         $total_fantasy = 0;
 
-        // 3.3) join members + weekly stats + coach bonus
+        // IMPORTANT: Sum weekly_stats per player/week first (supports multiple rows)
         $msql = "
             SELECT 
                 utm.role,
@@ -221,43 +163,47 @@ function recalc_user_points_for_week(mysqli $conn, int $week_number) {
                 utm.coach_id,
                 utm.is_captain,
                 c.bonus_points,
-                ws.fantasy_points AS ws_fp
+                COALESCE(ws_sum.total_fp, 0) AS ws_fp
             FROM user_team_members utm
             LEFT JOIN coaches c 
                 ON utm.coach_id = c.id
-            LEFT JOIN weekly_stats ws 
-                ON ws.player_id = utm.player_id
-               AND ws.week_number = ?
+            LEFT JOIN (
+                SELECT player_id, week_number, SUM(fantasy_points) AS total_fp
+                FROM weekly_stats
+                WHERE week_number = ?
+                GROUP BY player_id, week_number
+            ) ws_sum
+                ON ws_sum.player_id = utm.player_id
+               AND ws_sum.week_number = ?
             WHERE utm.user_team_id = ?
         ";
 
         $mstmt = $conn->prepare($msql);
-        $mstmt->bind_param("ii", $week_number, $team_id);
+        $mstmt->bind_param("iii", $week_number, $week_number, $team_id);
         $mstmt->execute();
         $mres = $mstmt->get_result();
 
         while ($row = $mres->fetch_assoc()) {
             $role = $row["role"];
 
-            if ($role === "PLAYER" && $row["player_id"]) {
-                // use the fantasy_points previously computed in weekly_stats
-                $fp = isset($row["ws_fp"]) ? (int)$row["ws_fp"] : 0;
+            if ($role === "PLAYER" && !empty($row["player_id"])) {
+                $fp = (int)$row["ws_fp"];
 
                 if ((int)$row["is_captain"] === 1) {
-                    $fp *= 2; // captain double
+                    $fp *= 2;
                 }
 
                 $total_fantasy += $fp;
             }
 
-            if ($role === "COACH" && $row["coach_id"]) {
+            if ($role === "COACH" && !empty($row["coach_id"])) {
                 $bonus = isset($row["bonus_points"]) ? (int)$row["bonus_points"] : 0;
                 $total_fantasy += $bonus;
             }
         }
         $mstmt->close();
 
-        // 3.4) insert into user_points
+        // Insert into user_points
         $ins = $conn->prepare("
             INSERT INTO user_points (user_id, week_number, fantasy_points)
             VALUES (?, ?, ?)
@@ -272,16 +218,14 @@ function recalc_user_points_for_week(mysqli $conn, int $week_number) {
     return $info;
 }
 
-// run the weekly scoring for this week
 $scoringInfo = recalc_user_points_for_week($conn, $week_number);
 
 // ---------- 4) FINAL RESPONSE ----------
-
 echo json_encode([
     "success"     => true,
-    "message"     => "Stats processed and weekly scores updated",
+    "message"     => "Stats inserted (no overwrite) and weekly scores updated",
     "inserted"    => $inserted,
-    "updated"     => $updated,
+    "updated"     => 0,
     "week_number" => $week_number,
     "scoring"     => $scoringInfo
 ]);

@@ -50,6 +50,49 @@ function showResultNice(outputId, res, opts = {}) {
 
   out.textContent = `${header}\n${message}\n\n--- raw ---\n${details}`;
 }
+async function loadPlayersForStats() {
+  const select = document.getElementById("s_player_select");
+  if (!select) return;
+
+  // show loading
+  select.innerHTML = `<option value="">Loading players…</option>`;
+
+  // ✅ correct URL from frontend/admin.html → backend/api/...
+  const url = new URL("../backend/api/players/get_all_players.php", window.location.href);
+
+  try {
+    const res = await fetch(url.toString(), { credentials: "include" });
+
+    // if server returns HTML/404/etc
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch {
+      console.error("Not JSON:", text.slice(0, 200));
+      select.innerHTML = `<option value="">Server did not return JSON</option>`;
+      return;
+    }
+
+    if (!data?.success || !Array.isArray(data.players)) {
+      select.innerHTML = `<option value="">Failed to load players</option>`;
+      return;
+    }
+
+    select.innerHTML = `<option value="">Select player…</option>`;
+    data.players.forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = `${p.name} — ${p.team} (${p.position})`;
+      select.appendChild(opt);
+    });
+
+  } catch (err) {
+    console.error("loadPlayersForStats error:", err);
+    select.innerHTML = `<option value="">Error loading players</option>`;
+  }
+}
+
+
 
 /* =========================
    EXISTING HELPERS
@@ -323,7 +366,10 @@ function attachAdminActions() {
       if (!requireAdmin()) return;
 
       const week_number = Number(document.getElementById("s_week")?.value);
-      const player_id = Number(document.getElementById("s_player_id")?.value);
+      const player_id = Number(
+  document.getElementById("s_player_select")?.value
+);
+
 
       if (!week_number || !player_id) {
         uiAlertSafe({
@@ -372,9 +418,7 @@ function attachAdminActions() {
   }
 }
 
-/* =========================
-   INIT
-   ========================= */
+
 
 document.addEventListener("DOMContentLoaded", async () => {
   const btnLogin = document.getElementById("btnAdminLogin");
@@ -388,6 +432,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (btnLogout) btnLogout.addEventListener("click", handleLogoutClick);
 
   attachAdminActions();
+   loadPlayersForStats();
 
   if (isAdminLoginPage()) {
     await loadAdminSession();

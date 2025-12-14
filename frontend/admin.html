@@ -250,7 +250,18 @@
         </h2>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-          <div><label class="text-xs font-semibold text-gray-600 block mb-1">Player ID</label><input id="s_player_id" type="number" class="w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-200" /></div>
+          <div class="md:col-span-2">
+  <label class="text-xs font-semibold text-gray-600 block mb-1">
+    Player
+  </label>
+
+  <select
+    id="s_player_select"
+    class="w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-200">
+    <option value="">Loading players…</option>
+  </select>
+</div>
+
           <div><label class="text-xs font-semibold text-gray-600 block mb-1">Week</label><input id="s_week" type="number" class="w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-200" /></div>
           <div><label class="text-xs font-semibold text-gray-600 block mb-1">Points</label><input id="s_points" type="number" class="w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-200" /></div>
           <div><label class="text-xs font-semibold text-gray-600 block mb-1">Rebounds</label><input id="s_rebounds" type="number" class="w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-200" /></div>
